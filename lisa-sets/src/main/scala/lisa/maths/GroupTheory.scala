@@ -15,6 +15,7 @@ import lisa.maths.settheory.SetTheory.*
 // import lisa.maths.FirstOrderLogic.existsOneImpliesExists
 // import lisa.maths.FirstOrderLogic.substitutionInUniquenessQuantifier
 import lisa.maths.settheory.*
+import lisa.maths.settheory.functions.FunctionProperties.bijective
 
 
 /**
@@ -1287,235 +1288,239 @@ object GroupTheory extends lisa.Main {
     // )
   }
 
-  // /**
-  //  * Lemma --- The subgroup conditions imply associativity on `H`.
-  //  *
-  //  * This directly follows from associativity on `G` and [[subgroupConditionsOperation]].
-  //  */
-  // private val subgroupConditionsAssociativity = Lemma(
-  //   (group(G, *), subset(H, G), subgroupConditions) |- associativityAxiom(H, ★)
-  // ) {
-  //   assume(group(G, *))
-  //   assume(subset(H, G))
-  //   assume(subgroupConditions)
+  /**
+   * Lemma --- The subgroup conditions imply associativity on `H`.
+   *
+   * This directly follows from associativity on `G` and [[subgroupConditionsOperation]].
+   */
+  private val subgroupConditionsAssociativity = Lemma(
+    (group(G, *), subset(H, G), subgroupConditions) |- associativityAxiom(H, ★)
+  ) {
+    sorry
+    // assume(group(G, *))
+    // assume(subset(H, G))
+    // assume(subgroupConditions)
 
-  //   have((x ∈ H, y ∈ H, z ∈ H) |- op(op(x, ★, y), ★, z) === op(x, ★, op(y, ★, z))) subproof {
-  //     assume(x ∈ H)
-  //     assume(y ∈ H)
-  //     assume(z ∈ H)
+    // have((x ∈ H, y ∈ H, z ∈ H) |- op(op(x, ★, y), ★, z) === op(x, ★, op(y, ★, z))) subproof {
+    //   assume(x ∈ H)
+    //   assume(y ∈ H)
+    //   assume(z ∈ H)
 
-  //     have(op(op(x, *, y), *, z) === op(x, *, op(y, *, z))) by Tautology.from(
-  //       associativity,
-  //       subgroupConditionsSubset,
-  //       subgroupConditionsSubset of (x -> y),
-  //       subgroupConditionsSubset of (x -> z)
-  //     )
-  //     thenHave((op(x, ★, y) === op(x, *, y), op(y, ★, z) === op(y, *, z)) |- (op(op(x, ★, y), *, z) === op(x, *, op(y, ★, z)))) by RightSubstEq(
-  //       List((op(x, ★, y), op(x, *, y)), (op(y, ★, z), op(y, *, z))),
-  //       lambda(Seq(a, b), op(a, *, z) === op(x, *, b))
-  //     )
+    //   have(op(op(x, *, y), *, z) === op(x, *, op(y, *, z))) by Tautology.from(
+    //     associativity,
+    //     subgroupConditionsSubset,
+    //     subgroupConditionsSubset of (x -> y),
+    //     subgroupConditionsSubset of (x -> z)
+    //   )
+    //   thenHave((op(x, ★, y) === op(x, *, y), op(y, ★, z) === op(y, *, z)) |- (op(op(x, ★, y), *, z) === op(x, *, op(y, ★, z)))) by RightSubstEq(
+    //     List((op(x, ★, y), op(x, *, y)), (op(y, ★, z), op(y, *, z))),
+    //     lambda(Seq(a, b), op(a, *, z) === op(x, *, b))
+    //   )
 
-  //     have(op(op(x, ★, y), *, z) === op(x, *, op(y, ★, z))) by Tautology.from(
-  //       lastStep,
-  //       subgroupConditionsOperation,
-  //       subgroupConditionsOperation of (x -> y, y -> z)
-  //     )
-  //     thenHave((op(op(x, ★, y), ★, z) === op(op(x, ★, y), *, z), op(x, ★, op(y, ★, z)) === op(x, *, op(y, ★, z))) |- (op(op(x, ★, y), ★, z) === op(x, ★, op(y, ★, z)))) by RightSubstEq(
-  //       List((op(op(x, ★, y), ★, z), op(op(x, ★, y), *, z)), (op(x, ★, op(y, ★, z)), op(x, *, op(y, ★, z)))),
-  //       lambda(Seq(a, b), a === b)
-  //     )
+    //   have(op(op(x, ★, y), *, z) === op(x, *, op(y, ★, z))) by Tautology.from(
+    //     lastStep,
+    //     subgroupConditionsOperation,
+    //     subgroupConditionsOperation of (x -> y, y -> z)
+    //   )
+    //   thenHave((op(op(x, ★, y), ★, z) === op(op(x, ★, y), *, z), op(x, ★, op(y, ★, z)) === op(x, *, op(y, ★, z))) |- (op(op(x, ★, y), ★, z) === op(x, ★, op(y, ★, z)))) by RightSubstEq(
+    //     List((op(op(x, ★, y), ★, z), op(op(x, ★, y), *, z)), (op(x, ★, op(y, ★, z)), op(x, *, op(y, ★, z)))),
+    //     lambda(Seq(a, b), a === b)
+    //   )
 
-  //     have(op(op(x, ★, y), ★, z) === op(x, ★, op(y, ★, z))) by Tautology.from(
-  //       lastStep,
-  //       subgroupConditionsOperation of (x -> op(x, ★, y), y -> z),
-  //       subgroupConditionsOperation of (x -> x, y -> op(y, ★, z)),
-  //       subgroupConditionsProductClosure,
-  //       subgroupConditionsProductClosure of (x -> y, y -> z)
-  //     )
-  //   }
+    //   have(op(op(x, ★, y), ★, z) === op(x, ★, op(y, ★, z))) by Tautology.from(
+    //     lastStep,
+    //     subgroupConditionsOperation of (x -> op(x, ★, y), y -> z),
+    //     subgroupConditionsOperation of (x -> x, y -> op(y, ★, z)),
+    //     subgroupConditionsProductClosure,
+    //     subgroupConditionsProductClosure of (x -> y, y -> z)
+    //   )
+    // }
 
-  //   // Reconstruct the axiom in its closed form
-  //   thenHave((x ∈ H, y ∈ H) |- (z ∈ H) ==> (op(op(x, ★, y), ★, z) === op(x, ★, op(y, ★, z)))) by Restate
-  //   thenHave((x ∈ H, y ∈ H) |- ∀(z, (z ∈ H) ==> (op(op(x, ★, y), ★, z) === op(x, ★, op(y, ★, z))))) by RightForall
-  //   thenHave((x ∈ H) |- (y ∈ H) ==> ∀(z, (z ∈ H) ==> (op(op(x, ★, y), ★, z) === op(x, ★, op(y, ★, z))))) by Restate
-  //   thenHave((x ∈ H) |- ∀(y, (y ∈ H) ==> ∀(z, (z ∈ H) ==> (op(op(x, ★, y), ★, z) === op(x, ★, op(y, ★, z)))))) by RightForall
-  //   thenHave((x ∈ H) ==> ∀(y, (y ∈ H) ==> ∀(z, (z ∈ H) ==> (op(op(x, ★, y), ★, z) === op(x, ★, op(y, ★, z)))))) by Restate
-  //   thenHave(∀(x, (x ∈ H) ==> ∀(y, (y ∈ H) ==> ∀(z, (z ∈ H) ==> (op(op(x, ★, y), ★, z) === op(x, ★, op(y, ★, z))))))) by RightForall
+    // Reconstruct the axiom in its closed form
+    // thenHave((x ∈ H, y ∈ H) |- (z ∈ H) ==> (op(op(x, ★, y), ★, z) === op(x, ★, op(y, ★, z)))) by Restate
+    // thenHave((x ∈ H, y ∈ H) |- ∀(z, (z ∈ H) ==> (op(op(x, ★, y), ★, z) === op(x, ★, op(y, ★, z))))) by RightForall
+    // thenHave((x ∈ H) |- (y ∈ H) ==> ∀(z, (z ∈ H) ==> (op(op(x, ★, y), ★, z) === op(x, ★, op(y, ★, z))))) by Restate
+    // thenHave((x ∈ H) |- ∀(y, (y ∈ H) ==> ∀(z, (z ∈ H) ==> (op(op(x, ★, y), ★, z) === op(x, ★, op(y, ★, z)))))) by RightForall
+    // thenHave((x ∈ H) ==> ∀(y, (y ∈ H) ==> ∀(z, (z ∈ H) ==> (op(op(x, ★, y), ★, z) === op(x, ★, op(y, ★, z)))))) by Restate
+    // thenHave(∀(x, (x ∈ H) ==> ∀(y, (y ∈ H) ==> ∀(z, (z ∈ H) ==> (op(op(x, ★, y), ★, z) === op(x, ★, op(y, ★, z))))))) by RightForall
 
-  //   have(thesis) by Tautology.from(lastStep, associativityAxiom.definition of (G -> H, * -> ★))
-  // }
+    // have(thesis) by Tautology.from(lastStep, associativityAxiom.definition of (G -> H, * -> ★))
+  }
 
-  // /**
-  //  * Lemma --- The subgroup conditions imply the existence of an identity element on `H`.
-  //  *
-  //  * We show in particular that identity(G, *) is neutral on `H`.
-  //  */
-  // private val subgroupConditionsIdentityExistence = Lemma(
-  //   (group(G, *), subset(H, G), subgroupConditions) |- identityExistence(H, ★)
-  // ) {
-  //   assume(group(G, *))
-  //   assume(subset(H, G))
-  //   assume(subgroupConditions)
+  /**
+   * Lemma --- The subgroup conditions imply the existence of an identity element on `H`.
+   *
+   * We show in particular that identity(G, *) is neutral on `H`.
+   */
+  private val subgroupConditionsIdentityExistence = Lemma(
+    (group(G, *), subset(H, G), subgroupConditions) |- identityExistence(H, ★)
+  ) {
+    sorry
+    // assume(group(G, *))
+    // assume(subset(H, G))
+    // assume(subgroupConditions)
 
-  //   // We show that for an element x ∈ H:
-  //   // 1. inverse(x) ∈ H                   [[closedByInverses]]
-  //   // 2. x * inverse(x) ∈ H               [[closedByProducts]]
-  //   // 3. x * inverse(x) = identity(G, *)  [[inverseCancellation]]
-  //   // 4. identity(G, *) ∈ H               Substitution of 3. in 2.
-  //   // 5. isNeutral(identity(G, *), H, ★)  [[identityNeutrality]]
-  //   // 6. identityExistence(H, ★)          [[identityExistence]]
-  //   // We finally conclude by [[nonEmpty]].
+    // // We show that for an element x ∈ H:
+    // // 1. inverse(x) ∈ H                   [[closedByInverses]]
+    // // 2. x * inverse(x) ∈ H               [[closedByProducts]]
+    // // 3. x * inverse(x) = identity(G, *)  [[inverseCancellation]]
+    // // 4. identity(G, *) ∈ H               Substitution of 3. in 2.
+    // // 5. isNeutral(identity(G, *), H, ★)  [[identityNeutrality]]
+    // // 6. identityExistence(H, ★)          [[identityExistence]]
+    // // We finally conclude by [[nonEmpty]].
 
-  //   // 1. inverse(x) ∈ H
-  //   have(closedByInverses) by Tautology
-  //   thenHave(((x ∈ H) ==> (inverse(x, G, *) ∈ H))) by InstantiateForall(x)
-  //   val step1 = thenHave((x ∈ H) |- (inverse(x, G, *) ∈ H)) by Restate
+    // // 1. inverse(x) ∈ H
+    // have(closedByInverses) by Tautology
+    // thenHave(((x ∈ H) ==> (inverse(x, G, *) ∈ H))) by InstantiateForall(x)
+    // val step1 = thenHave((x ∈ H) |- (inverse(x, G, *) ∈ H)) by Restate
 
-  //   // 2. x * inverse(x) ∈ H
-  //   have(closedByProducts) by Tautology
-  //   thenHave(∀(y, (x ∈ H /\ y ∈ H) ==> (op(x, *, y) ∈ H))) by InstantiateForall(x)
-  //   thenHave((x ∈ H /\ inverse(x, G, *) ∈ H) ==> (op(x, *, inverse(x, G, *)) ∈ H)) by InstantiateForall(inverse(x, G, *))
-  //   thenHave((x ∈ H, inverse(x, G, *) ∈ H) |- (op(x, *, inverse(x, G, *)) ∈ H)) by Restate
+    // // 2. x * inverse(x) ∈ H
+    // have(closedByProducts) by Tautology
+    // thenHave(∀(y, (x ∈ H /\ y ∈ H) ==> (op(x, *, y) ∈ H))) by InstantiateForall(x)
+    // thenHave((x ∈ H /\ inverse(x, G, *) ∈ H) ==> (op(x, *, inverse(x, G, *)) ∈ H)) by InstantiateForall(inverse(x, G, *))
+    // thenHave((x ∈ H, inverse(x, G, *) ∈ H) |- (op(x, *, inverse(x, G, *)) ∈ H)) by Restate
 
-  //   val step2 = have((x ∈ H) |- (op(x, *, inverse(x, G, *)) ∈ H)) by Cut(step1, lastStep)
+    // val step2 = have((x ∈ H) |- (op(x, *, inverse(x, G, *)) ∈ H)) by Cut(step1, lastStep)
 
-  //   // 3. x * inverse(x) = identity(G, *)
-  //   val step3 = have((x ∈ H) |- op(x, *, inverse(x, G, *)) === identity(G, *)) by Tautology.from(
-  //     subgroupConditionsSubset,
-  //     inverseCancellation
-  //   )
+    // // 3. x * inverse(x) = identity(G, *)
+    // val step3 = have((x ∈ H) |- op(x, *, inverse(x, G, *)) === identity(G, *)) by Tautology.from(
+    //   subgroupConditionsSubset,
+    //   inverseCancellation
+    // )
 
-  //   // 4. identity(G, *) ∈ H
-  //   have((x ∈ H, op(x, *, inverse(x, G, *)) === identity(G, *)) |- (identity(G, *) ∈ H)) by RightSubstEq(
-  //     List((op(x, *, inverse(x, G, *)), identity(G, *))),
-  //     lambda(z, z ∈ H)
-  //   )(step2)
-  //   val step4 = have((x ∈ H) |- (identity(G, *) ∈ H)) by Cut(step3, lastStep)
+    // // 4. identity(G, *) ∈ H
+    // have((x ∈ H, op(x, *, inverse(x, G, *)) === identity(G, *)) |- (identity(G, *) ∈ H)) by RightSubstEq(
+    //   List((op(x, *, inverse(x, G, *)), identity(G, *))),
+    //   lambda(z, z ∈ H)
+    // )(step2)
+    // val step4 = have((x ∈ H) |- (identity(G, *) ∈ H)) by Cut(step3, lastStep)
 
-  //   // 5. isNeutral(identity(G, *), H, ★)
-  //   have((x ∈ H) |- (op(identity(G, *), *, x) === x) /\ (op(x, *, identity(G, *)) === x)) by Tautology.from(
-  //     subgroupConditionsSubset,
-  //     identityNeutrality
-  //   )
-  //   thenHave(
-  //     (x ∈ H, op(identity(G, *), ★, x) === op(identity(G, *), *, x), op(x, ★, identity(G, *)) === op(x, *, identity(G, *))) |- (op(identity(G, *), ★, x) === x) /\ (op(x, ★, identity(G, *)) === x)
-  //   ) by RightSubstEq(
-  //     List((op(identity(G, *), ★, x), op(identity(G, *), *, x)), (op(x, ★, identity(G, *)), op(x, *, identity(G, *)))),
-  //     lambda(Seq(a, b), (a === x) /\ (b === x))
-  //   )
+    // // 5. isNeutral(identity(G, *), H, ★)
+    // have((x ∈ H) |- (op(identity(G, *), *, x) === x) /\ (op(x, *, identity(G, *)) === x)) by Tautology.from(
+    //   subgroupConditionsSubset,
+    //   identityNeutrality
+    // )
+    // thenHave(
+    //   (x ∈ H, op(identity(G, *), ★, x) === op(identity(G, *), *, x), op(x, ★, identity(G, *)) === op(x, *, identity(G, *))) |- (op(identity(G, *), ★, x) === x) /\ (op(x, ★, identity(G, *)) === x)
+    // ) by RightSubstEq(
+    //   List((op(identity(G, *), ★, x), op(identity(G, *), *, x)), (op(x, ★, identity(G, *)), op(x, *, identity(G, *)))),
+    //   lambda(Seq(a, b), (a === x) /\ (b === x))
+    // )
 
-  //   have(x ∈ H |- (op(identity(G, *), ★, x) === x) /\ (op(x, ★, identity(G, *)) === x)) by Tautology.from(
-  //     lastStep,
-  //     step4,
-  //     subgroupConditionsOperation of (x -> identity(G, *), y -> x),
-  //     subgroupConditionsOperation of (x -> x, y -> identity(G, *))
-  //   )
+    // have(x ∈ H |- (op(identity(G, *), ★, x) === x) /\ (op(x, ★, identity(G, *)) === x)) by Tautology.from(
+    //   lastStep,
+    //   step4,
+    //   subgroupConditionsOperation of (x -> identity(G, *), y -> x),
+    //   subgroupConditionsOperation of (x -> x, y -> identity(G, *))
+    // )
 
-  //   thenHave((x ∈ H) ==> (op(identity(G, *), ★, x) === x) /\ (op(x, ★, identity(G, *)) === x)) by Restate
-  //   thenHave(∀(x, (x ∈ H) ==> (op(identity(G, *), ★, x) === x) /\ (op(x, ★, identity(G, *)) === x))) by RightForall
-  //   val step5 = have((x ∈ H) |- isNeutral(identity(G, *), H, ★)) by Tautology.from(
-  //     lastStep,
-  //     step4,
-  //     isNeutral.definition of (e -> identity(G, *), G -> H, * -> ★)
-  //   )
+    // thenHave((x ∈ H) ==> (op(identity(G, *), ★, x) === x) /\ (op(x, ★, identity(G, *)) === x)) by Restate
+    // thenHave(∀(x, (x ∈ H) ==> (op(identity(G, *), ★, x) === x) /\ (op(x, ★, identity(G, *)) === x))) by RightForall
+    // val step5 = have((x ∈ H) |- isNeutral(identity(G, *), H, ★)) by Tautology.from(
+    //   lastStep,
+    //   step4,
+    //   isNeutral.definition of (e -> identity(G, *), G -> H, * -> ★)
+    // )
 
-  //   // 6. identityExistence(H, ★)
-  //   thenHave((x ∈ H) |- ∃(e, isNeutral(e, H, ★))) by RightExists
-  //   val step6 = have((x ∈ H) |- identityExistence(H, ★)) by Tautology.from(lastStep, identityExistence.definition of (G -> H, * -> ★))
+    // // 6. identityExistence(H, ★)
+    // thenHave((x ∈ H) |- ∃(e, isNeutral(e, H, ★))) by RightExists
+    // val step6 = have((x ∈ H) |- identityExistence(H, ★)) by Tautology.from(lastStep, identityExistence.definition of (G -> H, * -> ★))
 
-  //   // Conclude by [[nonEmpty]]
-  //   thenHave(∃(x, x ∈ H) |- identityExistence(H, ★)) by LeftExists
+    // // Conclude by [[nonEmpty]]
+    // thenHave(∃(x, x ∈ H) |- identityExistence(H, ★)) by LeftExists
 
-  //   have(thesis) by Tautology.from(lastStep, nonEmptySetHasElement of (x -> H))
-  // }
+    // have(thesis) by Tautology.from(lastStep, nonEmptySetHasElement of (x -> H))
+  }
 
-  // /**
-  //  * Lemma --- The subgroup conditions imply that for all elements `x` in `H`, there exists an inverse in `H`.
-  //  */
-  // private val subgroupConditionsInverseExistence = Lemma(
-  //   (group(G, *), subset(H, G), subgroupConditions) |- inverseExistence(H, ★)
-  // ) {
-  //   assume(group(G, *))
-  //   assume(subset(H, G))
-  //   assume(subgroupConditions)
+  /**
+   * Lemma --- The subgroup conditions imply that for all elements `x` in `H`, there exists an inverse in `H`.
+   */
+  private val subgroupConditionsInverseExistence = Lemma(
+    (group(G, *), subset(H, G), subgroupConditions) |- inverseExistence(H, ★)
+  ) {
+    sorry
+    // assume(group(G, *))
+    // assume(subset(H, G))
+    // assume(subgroupConditions)
 
-  //   val i = inverse(x, G, *)
+    // val i = inverse(x, G, *)
 
-  //   have(closedByInverses) by Tautology
-  //   thenHave(x ∈ H ==> i ∈ H) by InstantiateForall(x)
-  //   val inverseInH = thenHave(x ∈ H |- i ∈ H) by Restate
+    // have(closedByInverses) by Tautology
+    // thenHave(x ∈ H ==> i ∈ H) by InstantiateForall(x)
+    // val inverseInH = thenHave(x ∈ H |- i ∈ H) by Restate
 
-  //   // Show that a neutral element of G is also neutral in H
-  //   val neutralityInheritance = have((e ∈ H, isNeutral(e, G, *)) |- isNeutral(e, H, ★)) subproof {
-  //     assume(isNeutral(e, G, *))
-  //     have(∀(x, (x ∈ G) ==> ((op(e, *, x) === x) /\ (op(x, *, e) === x)))) by Tautology.from(isNeutral.definition)
-  //     thenHave((x ∈ G) ==> ((op(e, *, x) === x) /\ (op(x, *, e) === x))) by InstantiateForall(x)
-  //     thenHave(x ∈ G |- (op(e, *, x) === x) /\ (op(x, *, e) === x)) by Restate
+    // Show that a neutral element of G is also neutral in H
+    // val neutralityInheritance = have((e ∈ H, isNeutral(e, G, *)) |- isNeutral(e, H, ★)) subproof {
+    //   assume(isNeutral(e, G, *))
+    //   have(∀(x, (x ∈ G) ==> ((op(e, *, x) === x) /\ (op(x, *, e) === x)))) by Tautology.from(isNeutral.definition)
+    //   thenHave((x ∈ G) ==> ((op(e, *, x) === x) /\ (op(x, *, e) === x))) by InstantiateForall(x)
+    //   thenHave(x ∈ G |- (op(e, *, x) === x) /\ (op(x, *, e) === x)) by Restate
 
-  //     have(x ∈ H |- (op(e, *, x) === x) /\ (op(x, *, e) === x)) by Cut(subgroupConditionsSubset, lastStep)
-  //     thenHave((x ∈ H, op(e, ★, x) === op(e, *, x), op(x, ★, e) === op(x, *, e)) |- (op(e, ★, x) === x) /\ (op(x, ★, e) === x)) by RightSubstEq(
-  //       List((op(e, ★, x), op(e, *, x)), (op(x, ★, e), op(x, *, e))),
-  //       lambda(Seq(a, b), (a === x) /\ (b === x))
-  //     )
+    //   have(x ∈ H |- (op(e, *, x) === x) /\ (op(x, *, e) === x)) by Cut(subgroupConditionsSubset, lastStep)
+    //   thenHave((x ∈ H, op(e, ★, x) === op(e, *, x), op(x, ★, e) === op(x, *, e)) |- (op(e, ★, x) === x) /\ (op(x, ★, e) === x)) by RightSubstEq(
+    //     List((op(e, ★, x), op(e, *, x)), (op(x, ★, e), op(x, *, e))),
+    //     lambda(Seq(a, b), (a === x) /\ (b === x))
+    //   )
 
-  //     have((x ∈ H, e ∈ H) |- (op(e, ★, x) === x) /\ (op(x, ★, e) === x)) by Tautology.from(
-  //       lastStep,
-  //       subgroupConditionsOperation of (x -> e, y -> x),
-  //       subgroupConditionsOperation of (x -> x, y -> e)
-  //     )
-  //     thenHave(e ∈ H |- (x ∈ H) ==> (op(e, ★, x) === x) /\ (op(x, ★, e) === x)) by Restate
-  //     thenHave(e ∈ H |- ∀(x, (x ∈ H) ==> (op(e, ★, x) === x) /\ (op(x, ★, e) === x))) by RightForall
+    //   have((x ∈ H, e ∈ H) |- (op(e, ★, x) === x) /\ (op(x, ★, e) === x)) by Tautology.from(
+    //     lastStep,
+    //     subgroupConditionsOperation of (x -> e, y -> x),
+    //     subgroupConditionsOperation of (x -> x, y -> e)
+    //   )
+    //   thenHave(e ∈ H |- (x ∈ H) ==> (op(e, ★, x) === x) /\ (op(x, ★, e) === x)) by Restate
+    //   thenHave(e ∈ H |- ∀(x, (x ∈ H) ==> (op(e, ★, x) === x) /\ (op(x, ★, e) === x))) by RightForall
 
-  //     have(e ∈ H |- isNeutral(e, H, ★)) by Tautology.from(lastStep, isNeutral.definition of (G -> H, * -> ★))
-  //   }
+    //   have(e ∈ H |- isNeutral(e, H, ★)) by Tautology.from(lastStep, isNeutral.definition of (G -> H, * -> ★))
+    // }
 
-  //   // Show that i is neutral in H
-  //   have(x ∈ H |- isNeutral(op(x, *, i), G, *) /\ isNeutral(op(i, *, x), G, *)) by Tautology.from(
-  //     subgroupConditionsSubset,
-  //     inverseIsInverse,
-  //     isInverse.definition of (y -> inverse(x, G, *))
-  //   )
-  //   thenHave((x ∈ H, op(x, ★, i) === op(x, *, i), op(i, ★, x) === op(i, *, x)) |- isNeutral(op(x, ★, i), G, *) /\ isNeutral(op(i, ★, x), G, *)) by RightSubstEq(
-  //     List((op(x, ★, i), op(x, *, i)), (op(i, ★, x), op(i, *, x))),
-  //     lambda(Seq(a, b), isNeutral(a, G, *) /\ isNeutral(b, G, *))
-  //   )
+    // Show that i is neutral in H
+    // have(x ∈ H |- isNeutral(op(x, *, i), G, *) /\ isNeutral(op(i, *, x), G, *)) by Tautology.from(
+    //   subgroupConditionsSubset,
+    //   inverseIsInverse,
+    //   isInverse.definition of (y -> inverse(x, G, *))
+    // )
+    // thenHave((x ∈ H, op(x, ★, i) === op(x, *, i), op(i, ★, x) === op(i, *, x)) |- isNeutral(op(x, ★, i), G, *) /\ isNeutral(op(i, ★, x), G, *)) by RightSubstEq(
+    //   List((op(x, ★, i), op(x, *, i)), (op(i, ★, x), op(i, *, x))),
+    //   lambda(Seq(a, b), isNeutral(a, G, *) /\ isNeutral(b, G, *))
+    // )
 
-  //   have((x ∈ H, i ∈ H) |- isNeutral(op(x, ★, i), G, *) /\ isNeutral(op(i, ★, x), G, *)) by Tautology.from(
-  //     lastStep,
-  //     subgroupConditionsOperation of (x -> x, y -> i),
-  //     subgroupConditionsOperation of (x -> i, y -> x)
-  //   )
+    // have((x ∈ H, i ∈ H) |- isNeutral(op(x, ★, i), G, *) /\ isNeutral(op(i, ★, x), G, *)) by Tautology.from(
+    //   lastStep,
+    //   subgroupConditionsOperation of (x -> x, y -> i),
+    //   subgroupConditionsOperation of (x -> i, y -> x)
+    // )
 
-  //   have((x ∈ H, i ∈ H) |- isNeutral(op(x, ★, i), H, ★) /\ isNeutral(op(i, ★, x), H, ★)) by Tautology.from(
-  //     lastStep,
-  //     neutralityInheritance of (e -> op(x, ★, i)),
-  //     neutralityInheritance of (e -> op(i, ★, x)),
-  //     subgroupConditionsProductClosure of (x -> x, y -> i),
-  //     subgroupConditionsProductClosure of (x -> i, y -> x)
-  //   )
+    // have((x ∈ H, i ∈ H) |- isNeutral(op(x, ★, i), H, ★) /\ isNeutral(op(i, ★, x), H, ★)) by Tautology.from(
+    //   lastStep,
+    //   neutralityInheritance of (e -> op(x, ★, i)),
+    //   neutralityInheritance of (e -> op(i, ★, x)),
+    //   subgroupConditionsProductClosure of (x -> x, y -> i),
+    //   subgroupConditionsProductClosure of (x -> i, y -> x)
+    // )
 
-  //   have(x ∈ H |- (i ∈ H) /\ isNeutral(op(x, ★, i), H, ★) /\ isNeutral(op(i, ★, x), H, ★)) by Tautology.from(inverseInH, lastStep)
-  //   have(x ∈ H |- isInverse(i, x, H, ★)) by Tautology.from(lastStep, isInverse.definition of (y -> i, G -> H, * -> ★))
-  //   thenHave(x ∈ H |- ∃(y, isInverse(y, x, H, ★))) by RightExists
-  //   thenHave(x ∈ H ==> ∃(y, isInverse(y, x, H, ★))) by Restate
-  //   thenHave(∀(x, x ∈ H ==> ∃(y, isInverse(y, x, H, ★)))) by RightForall
+    // have(x ∈ H |- (i ∈ H) /\ isNeutral(op(x, ★, i), H, ★) /\ isNeutral(op(i, ★, x), H, ★)) by Tautology.from(inverseInH, lastStep)
+    // have(x ∈ H |- isInverse(i, x, H, ★)) by Tautology.from(lastStep, isInverse.definition of (y -> i, G -> H, * -> ★))
+    // thenHave(x ∈ H |- ∃(y, isInverse(y, x, H, ★))) by RightExists
+    // thenHave(x ∈ H ==> ∃(y, isInverse(y, x, H, ★))) by Restate
+    // thenHave(∀(x, x ∈ H ==> ∃(y, isInverse(y, x, H, ★)))) by RightForall
 
-  //   have(thesis) by Tautology.from(lastStep, inverseExistence.definition of (G -> H, * -> ★))
-  // }
+    // have(thesis) by Tautology.from(lastStep, inverseExistence.definition of (G -> H, * -> ★))
+  }
 
-  // /**
-  //  * Theorem (Main subgroup test) --- A subset `H ⊆ G` of a group `(G, *)` is a subgroup if and only if:
-  //  *   1. `H` is non-empty,
-  //  *   2. `H` is closed by products, and
-  //  *   3. `H` is closed by inversion.
-  //  *
-  //  * It is often easier to prove the 3 conditions independently than using the definition directly.
-  //  *
-  //  * Note that in the case where H is finite, conditions 1 and 2 are sufficient.
-  //  */
-  // val subgroupTest = Theorem(
-  //   (group(G, *), subset(H, G)) |- (subgroup(H, G, *) <=> subgroupConditions)
-  // ) {
+  /**
+   * Theorem (Main subgroup test) --- A subset `H ⊆ G` of a group `(G, *)` is a subgroup if and only if:
+   *   1. `H` is non-empty,
+   *   2. `H` is closed by products, and
+   *   3. `H` is closed by inversion.
+   *
+   * It is often easier to prove the 3 conditions independently than using the definition directly.
+   *
+   * Note that in the case where H is finite, conditions 1 and 2 are sufficient.
+   */
+  val subgroupTest = Theorem(
+    (group(G, *), subset(H, G)) |- (subgroup(H, G, *) <=> subgroupConditions)
+  ) {
+    sorry
   //   assume(group(G, *))
   //   assume(subset(H, G))
 
@@ -1576,363 +1581,369 @@ object GroupTheory extends lisa.Main {
   //   val backward = thenHave(subgroupConditions ==> subgroup(H, G, *)) by Restate
 
   //   have(thesis) by RightIff(forward, backward)
-  // }
+  }
 
-  // // TODO Trivial subgroup
+  // TODO Trivial subgroup
 
-  // //
-  // // 3. Homomorphisms
-  // //
+  //
+  // 3. Homomorphisms
+  //
 
-  // // Extra group composition law
-  // val ** = variable
+  // Extra group composition law
+  val -* = variable
 
-  // /**
-  //  * Definition --- A group homomorphism is a mapping `f: G -> H` from structures `G` and `H` equipped with binary operations `*` and `★` respectively,
-  //  * such that for all `x, y ∈ G`, we have* `f(x * y) = f(x) ** f(y)`.
-  //  *
-  //  * In the following, "homomorphism" always stands for "group homomorphism", i.e. `(G, *)` and `(H, **)` are groups.
-  //  */
-  // val homomorphism = DEF(f, G, *, H, **) --> group(G, *) /\ group(H, **) /\ functionFrom(f, G, H) /\ ∀(x, x ∈ G ==> ∀(y, y ∈ G ==> (app(f, op(x, *, y)) === op(app(f, x), **, app(f, y)))))
+  /**
+   * Definition --- A group homomorphism is a mapping `f: G -> H` from structures `G` and `H` equipped with binary operations `*` and `★` respectively,
+   * such that for all `x, y ∈ G`, we have* `f(x * y) = f(x) ** f(y)`.
+   *
+   * In the following, "homomorphism" always stands for "group homomorphism", i.e. `(G, *)` and `(H, **)` are groups.
+   */
+  val homomorphism = DEF(f, G, *, H, -*) --> group(G, *) /\ group(H, -*) /\ functionFrom(f, G, H) /\ ∀(x, x ∈ G ==> ∀(y, y ∈ G ==> (app(f, op(x, *, y)) === op(app(f, x), -*, app(f, y)))))
 
-  // /**
-  //  * Lemma --- Practical reformulation of the homomorphism definition.
-  //  */
-  // val homomorphismApplication = Lemma(
-  //   (homomorphism(f, G, *, H, **), x ∈ G, y ∈ G) |- app(f, op(x, *, y)) === op(app(f, x), **, app(f, y))
-  // ) {
-  //   assume(homomorphism(f, G, *, H, **))
-  //   have(∀(x, x ∈ G ==> ∀(y, y ∈ G ==> (app(f, op(x, *, y)) === op(app(f, x), **, app(f, y)))))) by Tautology.from(homomorphism.definition)
-  //   thenHave(x ∈ G ==> ∀(y, y ∈ G ==> (app(f, op(x, *, y)) === op(app(f, x), **, app(f, y))))) by InstantiateForall(x)
-  //   thenHave((x ∈ G) |- ∀(y, y ∈ G ==> (app(f, op(x, *, y)) === op(app(f, x), **, app(f, y))))) by Restate
-  //   thenHave((x ∈ G) |- y ∈ G ==> (app(f, op(x, *, y)) === op(app(f, x), **, app(f, y)))) by InstantiateForall(y)
-  //   thenHave(thesis) by Restate
-  // }
+  /**
+   * Lemma --- Practical reformulation of the homomorphism definition.
+   */
+  val homomorphismApplication = Lemma(
+    (homomorphism(f, G, *, H, -*), x ∈ G, y ∈ G) |- app(f, op(x, *, y)) === op(app(f, x), -*, app(f, y))
+  ) {
+    assume(homomorphism(f, G, *, H, -*))
+    have(∀(x, x ∈ G ==> ∀(y, y ∈ G ==> (app(f, op(x, *, y)) === op(app(f, x), -*, app(f, y)))))) by Tautology.from(homomorphism.definition)
+    thenHave(x ∈ G ==> ∀(y, y ∈ G ==> (app(f, op(x, *, y)) === op(app(f, x), -*, app(f, y))))) by InstantiateForall(x)
+    thenHave((x ∈ G) |- ∀(y, y ∈ G ==> (app(f, op(x, *, y)) === op(app(f, x), -*, app(f, y))))) by Restate
+    thenHave((x ∈ G) |- y ∈ G ==> (app(f, op(x, *, y)) === op(app(f, x), -*, app(f, y)))) by InstantiateForall(y)
+    thenHave(thesis) by Restate
+  }
 
-  // /**
-  //  * Lemma --- If `f` is a homomorphism, then `f(x) ∈ H` for all `x ∈ G`.
-  //  */
-  // private val homomorphismAppInH = Lemma(
-  //   (homomorphism(f, G, *, H, **), x ∈ G) |- app(f, x) ∈ H
-  // ) {
-  //   have(homomorphism(f, G, *, H, **) |- functionFrom(f, G, H)) by Tautology.from(homomorphism.definition)
-  //   have(thesis) by Cut(
-  //     lastStep,
-  //     functionAppInCodomain of (VariableLabel("t") -> x, VariableLabel("x") -> G, y -> H)
-  //   )
-  // }
+  /**
+   * Lemma --- If `f` is a homomorphism, then `f(x) ∈ H` for all `x ∈ G`.
+   */
+  private val homomorphismAppInH = Lemma(
+    (homomorphism(f, G, *, H, -*), x ∈ G) |- app(f, x) ∈ H
+  ) {
+    sorry
+    // have(homomorphism(f, G, *, H, -*) |- functionFrom(f, G, H)) by Tautology.from(homomorphism.definition)
+    // have(thesis) by Cut(
+    //   lastStep,
+    //   functionAppInCodomain of (VariableLabel("t") -> x, VariableLabel("x") -> G, y -> H)
+    // )
+  }
 
-  // /**
-  //  * Theorem --- If `f` is a group-homomorphism between `G` and `H`, then `f(e_G) = e_H`.
-  //  */
-  // val homomorphismMapsIdentityToIdentity = Theorem(
-  //   homomorphism(f, G, *, H, **) |- app(f, identity(G, *)) === identity(H, **)
-  // ) {
-  //   val e = identity(G, *)
+  /**
+   * Theorem --- If `f` is a group-homomorphism between `G` and `H`, then `f(e_G) = e_H`.
+   */
+  val homomorphismMapsIdentityToIdentity = Theorem(
+    homomorphism(f, G, *, H, -*) |- app(f, identity(G, *)) === identity(H, -*)
+  ) {
+    sorry
+    // val e = identity(G, *)
 
-  //   val groupG = have(homomorphism(f, G, *, H, **) |- group(G, *)) by Tautology.from(homomorphism.definition)
-  //   val groupH = have(homomorphism(f, G, *, H, **) |- group(H, **)) by Tautology.from(homomorphism.definition)
+    // val groupG = have(homomorphism(f, G, *, H, -*) |- group(G, *)) by Tautology.from(homomorphism.definition)
+    // val groupH = have(homomorphism(f, G, *, H, -*) |- group(H, -*)) by Tautology.from(homomorphism.definition)
 
-  //   val identityInG = have(homomorphism(f, G, *, H, **) |- e ∈ G) by Cut(groupG, identityInGroup)
-  //   val appInH = have(homomorphism(f, G, *, H, **) |- app(f, e) ∈ H) by Cut(identityInG, homomorphismAppInH of (x -> e))
+    // val identityInG = have(homomorphism(f, G, *, H, -*) |- e ∈ G) by Cut(groupG, identityInGroup)
+    // val appInH = have(homomorphism(f, G, *, H, -*) |- app(f, e) ∈ H) by Cut(identityInG, homomorphismAppInH of (x -> e))
 
-  //   // 0. e * e = e (to apply substitution)
-  //   have(group(G, *) |- op(e, *, e) === e) by Cut(
-  //     identityInGroup,
-  //     identityIdempotence of (x -> e)
-  //   )
-  //   val eq0 = have(homomorphism(f, G, *, H, **) |- op(e, *, e) === e) by Cut(groupG, lastStep)
+    // // 0. e * e = e (to apply substitution)
+    // have(group(G, *) |- op(e, *, e) === e) by Cut(
+    //   identityInGroup,
+    //   identityIdempotence of (x -> e)
+    // )
+    // val eq0 = have(homomorphism(f, G, *, H, -*) |- op(e, *, e) === e) by Cut(groupG, lastStep)
 
-  //   // 1. f(e * e) = f(e)
-  //   have(app(f, e) === app(f, e)) by RightRefl
-  //   thenHave(op(e, *, e) === e |- app(f, op(e, *, e)) === app(f, e)) by RightSubstEq(
-  //     List((op(e, *, e), e)),
-  //     lambda(z, app(f, z) === app(f, e))
-  //   )
-  //   val eq1 = have(homomorphism(f, G, *, H, **) |- app(f, op(e, *, e)) === app(f, e)) by Cut(eq0, lastStep)
+    // // 1. f(e * e) = f(e)
+    // have(app(f, e) === app(f, e)) by RightRefl
+    // thenHave(op(e, *, e) === e |- app(f, op(e, *, e)) === app(f, e)) by RightSubstEq(
+    //   List((op(e, *, e), e)),
+    //   lambda(z, app(f, z) === app(f, e))
+    // )
+    // val eq1 = have(homomorphism(f, G, *, H, -*) |- app(f, op(e, *, e)) === app(f, e)) by Cut(eq0, lastStep)
 
-  //   // 2. f(e * e) = f(e) ** f(e)
-  //   val eq2 = have(homomorphism(f, G, *, H, **) |- app(f, op(e, *, e)) === op(app(f, e), **, app(f, e))) by Cut(
-  //     identityInG,
-  //     homomorphismApplication of (x -> e, y -> e)
-  //   )
+    // // 2. f(e * e) = f(e) ** f(e)
+    // val eq2 = have(homomorphism(f, G, *, H, -*) |- app(f, op(e, *, e)) === op(app(f, e), -*, app(f, e))) by Cut(
+    //   identityInG,
+    //   homomorphismApplication of (x -> e, y -> e)
+    // )
 
-  //   // 3. f(e) ** f(e) = f(e)
-  //   val eq3 = have(homomorphism(f, G, *, H, **) |- op(app(f, e), **, app(f, e)) === app(f, e)) by Equalities(eq1, eq2)
+    // // 3. f(e) ** f(e) = f(e)
+    // val eq3 = have(homomorphism(f, G, *, H, -*) |- op(app(f, e), -*, app(f, e)) === app(f, e)) by Equalities(eq1, eq2)
 
-  //   // Conclude by idempotence
-  //   have((homomorphism(f, G, *, H, **), app(f, e) ∈ H) |- (op(app(f, e), **, app(f, e)) === app(f, e)) <=> (app(f, e) === identity(H, **))) by Cut(
-  //     groupH,
-  //     identityIdempotence of (x -> app(f, e), G -> H, * -> **)
-  //   )
-  //   have(homomorphism(f, G, *, H, **) |- (op(app(f, e), **, app(f, e)) === app(f, e)) <=> (app(f, e) === identity(H, **))) by Cut(
-  //     appInH,
-  //     lastStep
-  //   )
+    // // Conclude by idempotence
+    // have((homomorphism(f, G, *, H, -*), app(f, e) ∈ H) |- (op(app(f, e), -*, app(f, e)) === app(f, e)) <=> (app(f, e) === identity(H, -*))) by Cut(
+    //   groupH,
+    //   identityIdempotence of (x -> app(f, e), G -> H, * -> -*)
+    // )
+    // have(homomorphism(f, G, *, H, -*) |- (op(app(f, e), -*, app(f, e)) === app(f, e)) <=> (app(f, e) === identity(H, -*))) by Cut(
+    //   appInH,
+    //   lastStep
+    // )
 
-  //   have(thesis) by Tautology.from(lastStep, eq3)
-  // }
+    // have(thesis) by Tautology.from(lastStep, eq3)
+  }
 
-  // /**
-  //  * Theorem --- If `f: G -> H` is a group homomorphism, then `f(inverse(x, G, *)) = inverse(f(x), H, **)`.
-  //  */
-  // val homomorphismMapsInverseToInverse = Theorem(
-  //   (homomorphism(f, G, *, H, **), x ∈ G) |- app(f, inverse(x, G, *)) === inverse(app(f, x), H, **)
-  // ) {
-  //   assume(homomorphism(f, G, *, H, **))
-  //   assume(x ∈ G)
+  /**
+   * Theorem --- If `f: G -> H` is a group homomorphism, then `f(inverse(x, G, *)) = inverse(f(x), H, **)`.
+   */
+  val homomorphismMapsInverseToInverse = Theorem(
+    (homomorphism(f, G, *, H, -*), x ∈ G) |- app(f, inverse(x, G, *)) === inverse(app(f, x), H, -*)
+  ) {
+    sorry
+    // assume(homomorphism(f, G, *, H, -*))
+    // assume(x ∈ G)
 
-  //   val groupG = have(group(G, *)) by Tautology.from(homomorphism.definition)
-  //   val groupH = have(group(H, **)) by Tautology.from(homomorphism.definition)
+    // val groupG = have(group(G, *)) by Tautology.from(homomorphism.definition)
+    // val groupH = have(group(H, -*)) by Tautology.from(homomorphism.definition)
 
-  //   val eG = identity(G, *)
-  //   val eH = identity(H, **)
-  //   val i = inverse(x, G, *)
-  //   val iInG = have(i ∈ G) by Cut(groupG, inverseInGroup)
+    // val eG = identity(G, *)
+    // val eH = identity(H, -*)
+    // val i = inverse(x, G, *)
+    // val iInG = have(i ∈ G) by Cut(groupG, inverseInGroup)
 
-  //   // 1. f(x * inverse(x)) = f(x) f(inverse(x))
-  //   val eq1 = have(app(f, op(x, *, i)) === op(app(f, x), **, app(f, i))) by Cut(
-  //     iInG,
-  //     homomorphismApplication of (y -> i)
-  //   )
+    // // 1. f(x * inverse(x)) = f(x) f(inverse(x))
+    // val eq1 = have(app(f, op(x, *, i)) === op(app(f, x), -*, app(f, i))) by Cut(
+    //   iInG,
+    //   homomorphismApplication of (y -> i)
+    // )
 
-  //   // 2. f(x * inverse(x)) = f(e)
-  //   val cancellation = have(op(x, *, i) === eG) by Tautology.from(
-  //     groupG,
-  //     inverseCancellation
-  //   )
+    // // 2. f(x * inverse(x)) = f(e)
+    // val cancellation = have(op(x, *, i) === eG) by Tautology.from(
+    //   groupG,
+    //   inverseCancellation
+    // )
 
-  //   have(app(f, op(x, *, i)) === app(f, op(x, *, i))) by RightRefl
-  //   thenHave((op(x, *, i) === eG) |- (app(f, op(x, *, i)) === app(f, eG))) by RightSubstEq(
-  //     List((op(x, *, i), eG)),
-  //     lambda(z, app(f, op(x, *, i)) === app(f, z))
-  //   )
+    // have(app(f, op(x, *, i)) === app(f, op(x, *, i))) by RightRefl
+    // thenHave((op(x, *, i) === eG) |- (app(f, op(x, *, i)) === app(f, eG))) by RightSubstEq(
+    //   List((op(x, *, i), eG)),
+    //   lambda(z, app(f, op(x, *, i)) === app(f, z))
+    // )
 
-  //   val eq2 = have(app(f, op(x, *, i)) === app(f, eG)) by Cut(cancellation, lastStep)
+    // val eq2 = have(app(f, op(x, *, i)) === app(f, eG)) by Cut(cancellation, lastStep)
 
-  //   // 3. f(e) = e'
-  //   val eq3 = have(app(f, eG) === eH) by Tautology.from(homomorphismMapsIdentityToIdentity)
+    // // 3. f(e) = e'
+    // val eq3 = have(app(f, eG) === eH) by Tautology.from(homomorphismMapsIdentityToIdentity)
 
-  //   // 4. f(x)f(inverse(x)) = e'
-  //   val eq4 = have(op(app(f, x), **, app(f, i)) === eH) by Equalities(eq1, eq2, eq3)
+    // // 4. f(x)f(inverse(x)) = e'
+    // val eq4 = have(op(app(f, x), -*, app(f, i)) === eH) by Equalities(eq1, eq2, eq3)
 
-  //   // Conclude
-  //   val conclusion = have((app(f, i) ∈ H) |- (app(f, i) === inverse(app(f, x), H, **))) by Tautology.from(
-  //     groupH,
-  //     inverseTest of (G -> H, * -> **, x -> app(f, x), y -> app(f, i)),
-  //     eq4,
-  //     homomorphismAppInH
-  //   )
-  //   have(app(f, i) ∈ H) by Cut(iInG, homomorphismAppInH of (x -> i))
+    // // Conclude
+    // val conclusion = have((app(f, i) ∈ H) |- (app(f, i) === inverse(app(f, x), H, -*))) by Tautology.from(
+    //   groupH,
+    //   inverseTest of (G -> H, * -> -*, x -> app(f, x), y -> app(f, i)),
+    //   eq4,
+    //   homomorphismAppInH
+    // )
+    // have(app(f, i) ∈ H) by Cut(iInG, homomorphismAppInH of (x -> i))
 
-  //   have(thesis) by Cut(lastStep, conclusion)
-  // }
+    // have(thesis) by Cut(lastStep, conclusion)
+  }
 
-  // // TODO Homomorphism composition once we have function composition
+  // TODO Homomorphism composition once we have function composition
 
-  // /**
-  //  * Kernel uniqueness --- The kernel of a homomorphism is well-defined.
-  //  */
-  // val kernelUniqueness = Theorem(
-  //   homomorphism(f, G, *, H, **) |- ∃!(z, ∀(t, (t ∈ z) <=> (t ∈ G /\ (app(f, t) === identity(H, **)))))
-  // ) {
-  //   // We apply the comprehension axiom here.
-  //   // It might seem odd that the homomorphism assumption is not needed for the set to be defined,
-  //   // but remember that [[app]] and [[identity]] default to the empty set when the assumptions are not met.
-  //   // We add the assumption of `f` being a homomorphism to discard any value when the assumptions do not hold.
-  //   have(∃!(z, ∀(t, (t ∈ z) <=> (t ∈ G /\ (app(f, t) === identity(H, **)))))) by UniqueComprehension(
-  //     G,
-  //     lambda(Seq(t, G), app(f, t) === identity(H, **))
-  //   )
-  //   thenHave(thesis) by Weakening
-  // }
+  /**
+   * Kernel uniqueness --- The kernel of a homomorphism is well-defined.
+   */
+  val kernelUniqueness = Theorem(
+    homomorphism(f, G, *, H, -*) |- ∃!(z, ∀(t, (t ∈ z) <=> (t ∈ G /\ (app(f, t) === identity(H, -*)))))
+  ) {
+    sorry
+    // // We apply the comprehension axiom here.
+    // // It might seem odd that the homomorphism assumption is not needed for the set to be defined,
+    // // but remember that [[app]] and [[identity]] default to the empty set when the assumptions are not met.
+    // // We add the assumption of `f` being a homomorphism to discard any value when the assumptions do not hold.
+    // have(∃!(z, ∀(t, (t ∈ z) <=> (t ∈ G /\ (app(f, t) === identity(H, -*)))))) by UniqueComprehension(
+    //   G,
+    //   lambda(Seq(t, G), app(f, t) === identity(H, -*))
+    // )
+    // thenHave(thesis) by Weakening
+  }
 
-  // /**
-  //  * Kernel --- The kernel of a homomorphism `f: G -> H` is the set of elements `t ∈ G` such that `f(t) = e_H`.
-  //  */
-  // val kernel = DEF(f, G, *, H, **) --> TheConditional(z, ∀(t, (t ∈ z) <=> (t ∈ G /\ (app(f, t) === identity(H, **)))))(kernelUniqueness)
+  /**
+   * Kernel --- The kernel of a homomorphism `f: G -> H` is the set of elements `t ∈ G` such that `f(t) = e_H`.
+   */
+  val kernel = DEF(f, G, *, H, -*) --> TheConditional(z, ∀(t, (t ∈ z) <=> (t ∈ G /\ (app(f, t) === identity(H, -*)))))(kernelUniqueness)
 
-  // // Shortcut alias
-  // private val K = kernel(f, G, *, H, **)
+  // Shortcut alias
+  private val Ker = kernel(f, G, *, H, -*)
 
-  // /**
-  //  * Lemma --- Reformulation of the kernel definition.
-  //  */
-  // private val kernelDef = Lemma(
-  //   homomorphism(f, G, *, H, **) |- (x ∈ K) <=> (x ∈ G /\ (app(f, x) === identity(H, **)))
-  // ) {
-  //   assume(homomorphism(f, G, *, H, **))
-  //   have(∀(t, (t ∈ K) <=> (t ∈ G /\ (app(f, t) === identity(H, **))))) by Definition(kernel, kernelUniqueness)(f, G, *, H, **)
-  //   thenHave(thesis) by InstantiateForall(x)
-  // }
+  /**
+   * Lemma --- Reformulation of the kernel definition.
+   */
+  private val kernelDef = Lemma(
+    homomorphism(f, G, *, H, -*) |- (x ∈ Ker) <=> (x ∈ G /\ (app(f, x) === identity(H, -*)))
+  ) {
+    assume(homomorphism(f, G, *, H, -*))
+    have(∀(t, (t ∈ Ker) <=> (t ∈ G /\ (app(f, t) === identity(H, -*))))) by Definition(kernel, kernelUniqueness)(f, G, *, H, -*)
+    thenHave(thesis) by InstantiateForall(x)
+  }
 
-  // /**
-  //  * Lemma --- The kernel is closed by products, i.e. if `x, y ∈ K`, then `x * y ∈ K`.
-  //  */
-  // val kernelIsClosedByProducts = Lemma(
-  //   (homomorphism(f, G, *, H, **), x ∈ K, y ∈ K) |- op(x, *, y) ∈ K
-  // ) {
-  //   assume(homomorphism(f, G, *, H, **))
-  //   assume(x ∈ K)
-  //   assume(y ∈ K)
+  /**
+   * Lemma --- The kernel is closed by products, i.e. if `x, y ∈ K`, then `x * y ∈ K`.
+   */
+  val kernelIsClosedByProducts = Lemma(
+    (homomorphism(f, G, *, H, -*), x ∈ Ker, y ∈ Ker) |- op(x, *, y) ∈ Ker
+  ) {
+    sorry
+    // assume(homomorphism(f, G, *, H, -*))
+    // assume(x ∈ Ker)
+    // assume(y ∈ Ker)
 
-  //   val elemInG = have(x ∈ G) by Tautology.from(kernelDef)
+    // val elemInG = have(x ∈ G) by Tautology.from(kernelDef)
 
-  //   val groupG = have(group(G, *)) by Tautology.from(homomorphism.definition)
-  //   val groupH = have(group(H, **)) by Tautology.from(homomorphism.definition)
+    // val groupG = have(group(G, *)) by Tautology.from(homomorphism.definition)
+    // val groupH = have(group(H, -*)) by Tautology.from(homomorphism.definition)
 
-  //   val e = identity(H, **)
-  //   val eInH = have(e ∈ H) by Cut(groupH, identityInGroup of (G -> H, * -> **))
+    // val e = identity(H, -*)
+    // val eInH = have(e ∈ H) by Cut(groupH, identityInGroup of (G -> H, * -> -*))
 
-  //   // 1. f(x) ** f(y) = f(x * y)
-  //   val eq1 = have(app(f, op(x, *, y)) === op(app(f, x), **, app(f, y))) by Tautology.from(
-  //     homomorphismApplication,
-  //     elemInG,
-  //     elemInG of (x -> y)
-  //   )
+    // // 1. f(x) ** f(y) = f(x * y)
+    // val eq1 = have(app(f, op(x, *, y)) === op(app(f, x), -*, app(f, y))) by Tautology.from(
+    //   homomorphismApplication,
+    //   elemInG,
+    //   elemInG of (x -> y)
+    // )
 
-  //   // 2. f(x) ** f(y) = e ** e
-  //   val appValue = have(app(f, x) === e) by Tautology.from(kernelDef)
-  //   have(op(app(f, x), **, app(f, y)) === op(app(f, x), **, app(f, y))) by RightRefl
-  //   thenHave((app(f, x) === e, app(f, y) === e) |- op(app(f, x), **, app(f, y)) === op(e, **, e)) by RightSubstEq(
-  //     List((app(f, x), e), (app(f, y), e)),
-  //     lambda(Seq(a, b), op(app(f, x), **, app(f, y)) === op(a, **, b))
-  //   )
+    // // 2. f(x) ** f(y) = e ** e
+    // val appValue = have(app(f, x) === e) by Tautology.from(kernelDef)
+    // have(op(app(f, x), -*, app(f, y)) === op(app(f, x), -*, app(f, y))) by RightRefl
+    // thenHave((app(f, x) === e, app(f, y) === e) |- op(app(f, x), -*, app(f, y)) === op(e, -*, e)) by RightSubstEq(
+    //   List((app(f, x), e), (app(f, y), e)),
+    //   lambda(Seq(a, b), op(app(f, x), -*, app(f, y)) === op(a, -*, b))
+    // )
 
-  //   val eq2 = have(op(app(f, x), **, app(f, y)) === op(e, **, e)) by Tautology.from(
-  //     lastStep,
-  //     appValue,
-  //     appValue of (x -> y)
-  //   )
+    // val eq2 = have(op(app(f, x), -*, app(f, y)) === op(e, -*, e)) by Tautology.from(
+    //   lastStep,
+    //   appValue,
+    //   appValue of (x -> y)
+    // )
 
-  //   // 3. e ** e = e
-  //   val eq3 = have(op(e, **, e) === e) by Tautology.from(
-  //     identityNeutrality of (G -> H, * -> **, x -> e),
-  //     groupH,
-  //     eInH
-  //   )
+    // // 3. e ** e = e
+    // val eq3 = have(op(e, -*, e) === e) by Tautology.from(
+    //   identityNeutrality of (G -> H, * -> -*, x -> e),
+    //   groupH,
+    //   eInH
+    // )
 
-  //   // 4. f(x * y) = e
-  //   val eq4 = have(app(f, op(x, *, y)) === e) by Equalities(eq1, eq2, eq3)
+    // // 4. f(x * y) = e
+    // val eq4 = have(app(f, op(x, *, y)) === e) by Equalities(eq1, eq2, eq3)
 
-  //   // Conclude that x * y ∈ K
-  //   have(op(x, *, y) ∈ G) by Tautology.from(
-  //     groupG,
-  //     elemInG,
-  //     elemInG of (x -> y),
-  //     groupIsClosedByProduct
-  //   )
+    // // Conclude that x * y ∈ K
+    // have(op(x, *, y) ∈ G) by Tautology.from(
+    //   groupG,
+    //   elemInG,
+    //   elemInG of (x -> y),
+    //   groupIsClosedByProduct
+    // )
 
-  //   have(op(x, *, y) ∈ G /\ (app(f, op(x, *, y)) === e)) by RightAnd(lastStep, eq4)
-  //   have(thesis) by Tautology.from(lastStep, kernelDef of (x -> op(x, *, y)))
-  // }
+    // have(op(x, *, y) ∈ G /\ (app(f, op(x, *, y)) === e)) by RightAnd(lastStep, eq4)
+    // have(thesis) by Tautology.from(lastStep, kernelDef of (x -> op(x, *, y)))
+  }
 
-  // /**
-  //  * Lemma --- The kernel is closed by inversion, i.e. if `x ∈ K` then `inverse(x, G, *) ∈ K`.
-  //  */
-  // val kernelIsClosedByInversion = Lemma(
-  //   (homomorphism(f, G, *, H, **), x ∈ K) |- inverse(x, G, *) ∈ K
-  // ) {
-  //   assume(homomorphism(f, G, *, H, **))
-  //   assume(x ∈ K)
+  /**
+   * Lemma --- The kernel is closed by inversion, i.e. if `x ∈ K` then `inverse(x, G, *) ∈ K`.
+   */
+  val kernelIsClosedByInversion = Lemma(
+    (homomorphism(f, G, *, H, -*), x ∈ Ker) |- inverse(x, G, *) ∈ Ker
+  ) {
+    sorry
+    // assume(homomorphism(f, G, *, H, -*))
+    // assume(x ∈ Ker)
 
-  //   val groupG = have(group(G, *)) by Tautology.from(homomorphism.definition)
-  //   val groupH = have(group(H, **)) by Tautology.from(homomorphism.definition)
-  //   val elemInG = have(x ∈ G) by Tautology.from(kernelDef)
+    // val groupG = have(group(G, *)) by Tautology.from(homomorphism.definition)
+    // val groupH = have(group(H, -*)) by Tautology.from(homomorphism.definition)
+    // val elemInG = have(x ∈ G) by Tautology.from(kernelDef)
 
-  //   val e = identity(H, **)
-  //   val appValue = have(app(f, x) === e) by Tautology.from(kernelDef)
+    // val e = identity(H, -*)
+    // val appValue = have(app(f, x) === e) by Tautology.from(kernelDef)
 
-  //   // 1. f(inverse(x)) = inverse(f(x)) = inverse(e)
-  //   have(app(f, inverse(x, G, *)) === inverse(app(f, x), H, **)) by Tautology.from(
-  //     homomorphismMapsInverseToInverse,
-  //     elemInG
-  //   )
-  //   thenHave((app(f, x) === e) |- (app(f, inverse(x, G, *)) === inverse(e, H, **))) by RightSubstEq(
-  //     List((app(f, x), e)),
-  //     lambda(z, app(f, inverse(x, G, *)) === inverse(z, H, **))
-  //   )
+    // // 1. f(inverse(x)) = inverse(f(x)) = inverse(e)
+    // have(app(f, inverse(x, G, *)) === inverse(app(f, x), H, -*)) by Tautology.from(
+    //   homomorphismMapsInverseToInverse,
+    //   elemInG
+    // )
+    // thenHave((app(f, x) === e) |- (app(f, inverse(x, G, *)) === inverse(e, H, -*))) by RightSubstEq(
+    //   List((app(f, x), e)),
+    //   lambda(z, app(f, inverse(x, G, *)) === inverse(z, H, -*))
+    // )
 
-  //   val eq1 = have(app(f, inverse(x, G, *)) === inverse(e, H, **)) by Cut(appValue, lastStep)
+    // val eq1 = have(app(f, inverse(x, G, *)) === inverse(e, H, -*)) by Cut(appValue, lastStep)
 
-  //   // 2. inverse(e) = e
-  //   val eq2 = have(inverse(e, H, **) === e) by Cut(groupH, inverseOfIdentityIsIdentity of (G -> H, * -> **))
+    // // 2. inverse(e) = e
+    // val eq2 = have(inverse(e, H, -*) === e) by Cut(groupH, inverseOfIdentityIsIdentity of (G -> H, * -> -*))
 
-  //   // 3. Conclude
-  //   val eq3 = have(app(f, inverse(x, G, *)) === e) by Equalities(eq1, eq2)
-  //   have(inverse(x, G, *) ∈ G) by Tautology.from(
-  //     groupG,
-  //     elemInG,
-  //     inverseInGroup
-  //   )
+    // // 3. Conclude
+    // val eq3 = have(app(f, inverse(x, G, *)) === e) by Equalities(eq1, eq2)
+    // have(inverse(x, G, *) ∈ G) by Tautology.from(
+    //   groupG,
+    //   elemInG,
+    //   inverseInGroup
+    // )
 
-  //   have((inverse(x, G, *) ∈ G) /\ (app(f, inverse(x, G, *)) === e)) by RightAnd(lastStep, eq3)
+    // have((inverse(x, G, *) ∈ G) /\ (app(f, inverse(x, G, *)) === e)) by RightAnd(lastStep, eq3)
 
-  //   have(thesis) by Tautology.from(lastStep, kernelDef of (x -> inverse(x, G, *)))
-  // }
+    // have(thesis) by Tautology.from(lastStep, kernelDef of (x -> inverse(x, G, *)))
+  }
 
-  // /**
-  //  * Theorem --- The kernel of a homomorphism `f: G -> H` is a subgroup of `G`.
-  //  */
-  // val kernelIsSubgroup = Theorem(
-  //   homomorphism(f, G, *, H, **) |- subgroup(kernel(f, G, *, H, **), G, *)
-  // ) {
-  //   assume(homomorphism(f, G, *, H, **))
-  //   val groupG = have(group(G, *)) by Tautology.from(homomorphism.definition)
+  /**
+   * Theorem --- The kernel of a homomorphism `f: G -> H` is a subgroup of `G`.
+   */
+  val kernelIsSubgroup = Theorem(
+    homomorphism(f, G, *, H, -*) |- subgroup(kernel(f, G, *, H, -*), G, *)
+  ) {
+    assume(homomorphism(f, G, *, H, -*))
+    val groupG = have(group(G, *)) by Tautology.from(homomorphism.definition)
 
-  //   // We show that the kernel satisfies all requirements of [[subgroupTest]]
-  //   have((x ∈ K) ==> (x ∈ G)) by Tautology.from(kernelDef)
-  //   thenHave(∀(x, x ∈ K ==> x ∈ G)) by RightForall
-  //   val kernelIsSubset = have(subset(K, G)) by Tautology.from(lastStep, subsetAxiom of (x -> K, y -> G))
+    // We show that the kernel satisfies all requirements of [[subgroupTest]]
+    have((x ∈ Ker) ==> (x ∈ G)) by Tautology.from(kernelDef)
+    thenHave(∀(x, x ∈ Ker ==> x ∈ G)) by RightForall
+    val kernelIsSubset = have(subset(Ker, G)) by Tautology.from(lastStep, subsetAxiom of (x -> Ker, y -> G))
 
-  //   // 1. kernel != ∅
-  //   have(identity(G, *) ∈ G) by Cut(groupG, identityInGroup)
-  //   have(identity(G, *) ∈ G /\ (app(f, identity(G, *)) === identity(H, **))) by RightAnd(
-  //     lastStep,
-  //     homomorphismMapsIdentityToIdentity
-  //   )
-  //   have(identity(G, *) ∈ K) by Tautology.from(
-  //     lastStep,
-  //     kernelDef of (x -> identity(G, *))
-  //   )
-  //   val condition1 = have(K =/= ∅) by Cut(lastStep, setWithElementNonEmpty of (y -> identity(G, *), x -> K))
+    // 1. kernel != ∅
+    have(identity(G, *) ∈ G) by Cut(groupG, identityInGroup)
+    have(identity(G, *) ∈ G /\ (app(f, identity(G, *)) === identity(H, -*))) by RightAnd(
+      lastStep,
+      homomorphismMapsIdentityToIdentity
+    )
+    have(identity(G, *) ∈ Ker) by Tautology.from(
+      lastStep,
+      kernelDef of (x -> identity(G, *))
+    )
+    val condition1 = have(Ker =/= ∅) by Cut(lastStep, setWithElementNonEmpty of (y -> identity(G, *), x -> Ker))
 
-  //   // 2. The kernel is closed by products
-  //   have((x ∈ K /\ y ∈ K) ==> op(x, *, y) ∈ K) by Restate.from(kernelIsClosedByProducts)
-  //   thenHave(∀(y, (x ∈ K /\ y ∈ K) ==> op(x, *, y) ∈ K)) by RightForall
-  //   val condition2 = thenHave(∀(x, ∀(y, (x ∈ K /\ y ∈ K) ==> op(x, *, y) ∈ K))) by RightForall
+    // 2. The kernel is closed by products
+    have((x ∈ Ker /\ y ∈ Ker) ==> op(x, *, y) ∈ Ker) by Restate.from(kernelIsClosedByProducts)
+    thenHave(∀(y, (x ∈ Ker /\ y ∈ Ker) ==> op(x, *, y) ∈ Ker)) by RightForall
+    val condition2 = thenHave(∀(x, ∀(y, (x ∈ Ker /\ y ∈ Ker) ==> op(x, *, y) ∈ Ker))) by RightForall
 
-  //   // 3. The kernel is closed by inversion
-  //   have((x ∈ K) ==> (inverse(x, G, *) ∈ K)) by Restate.from(kernelIsClosedByInversion)
-  //   val condition3 = thenHave(∀(x, (x ∈ K) ==> (inverse(x, G, *) ∈ K))) by RightForall
+    // 3. The kernel is closed by inversion
+    have((x ∈ Ker) ==> (inverse(x, G, *) ∈ Ker)) by Restate.from(kernelIsClosedByInversion)
+    val condition3 = thenHave(∀(x, (x ∈ Ker) ==> (inverse(x, G, *) ∈ Ker))) by RightForall
 
-  //   // Conclude
-  //   have((K =/= ∅) /\ ∀(x, ∀(y, (x ∈ K /\ y ∈ K) ==> op(x, *, y) ∈ K)) /\ ∀(x, (x ∈ K) ==> (inverse(x, G, *) ∈ K))) by RightAnd(
-  //     condition1,
-  //     condition2,
-  //     condition3
-  //   )
+    // Conclude
+    have((Ker =/= ∅) /\ ∀(x, ∀(y, (x ∈ Ker /\ y ∈ Ker) ==> op(x, *, y) ∈ Ker)) /\ ∀(x, (x ∈ Ker) ==> (inverse(x, G, *) ∈ Ker))) by RightAnd(
+      condition1,
+      condition2,
+      condition3
+    )
 
-  //   have(subgroup(K, G, *)) by Tautology.from(
-  //     lastStep,
-  //     subgroupTest of (H -> K),
-  //     groupG,
-  //     kernelIsSubset
-  //   )
-  // }
+    have(subgroup(Ker, G, *)) by Tautology.from(
+      lastStep,
+      subgroupTest of (H -> Ker),
+      groupG,
+      kernelIsSubset
+    )
+  }
 
-  // // TODO Kernel injectivity
-  // // TODO Image is subgroup
+  // TODO Kernel injectivity
+  // TODO Image is subgroup
 
-  // /**
-  //  * Isomorphism --- An isomorphism `f: G -> H` is a bijective homomorphism.
-  //  *
-  //  * In some sense, isomorphic groups are equivalent, up to relabelling their elements.
-  //  */
-  // val isomorphism = DEF(f, G, *, H, **) --> homomorphism(f, G, *, H, **) /\ bijective(f, G, H)
+  /**
+   * Isomorphism --- An isomorphism `f: G -> H` is a bijective homomorphism.
+   *
+   * In some sense, isomorphic groups are equivalent, up to relabelling their elements.
+   */
+  val isomorphism = DEF(f, G, *, H, -*) --> homomorphism(f, G, *, H, -*) /\ bijective(f, G, H)
 
-  // /**
-  //  * Automorphism --- An automorphism is an isomorphism from a group to itself.
-  //  */
-  // val automorphism = DEF(f, G, *) --> isomorphism(f, G, *, G, *)
+  /**
+   * Automorphism --- An automorphism is an isomorphism from a group to itself.
+   */
+  val automorphism = DEF(f, G, *) --> isomorphism(f, G, *, G, *)
 }
