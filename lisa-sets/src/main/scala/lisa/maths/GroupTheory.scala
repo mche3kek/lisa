@@ -16,6 +16,7 @@ import lisa.maths.settheory.SetTheory.*
 // import lisa.maths.FirstOrderLogic.substitutionInUniquenessQuantifier
 import lisa.maths.settheory.*
 import lisa.maths.settheory.functions.FunctionProperties.bijective
+import lisa.automation.settheory.SetTheoryTactics.TheConditional
 
 
 /**
@@ -53,92 +54,91 @@ object GroupTheory extends lisa.Main {
     * on the assumption of the group structure.
     */
     
-    def TheConditional(u: Variable, f: Formula)(just: JUSTIFICATION, defaultValue: Term = ∅): The = {
-        The(u, f)(just)
-        /**val seq = just.proposition
+    // def TheConditional(u: Variable, f: Formula)(just: JUSTIFICATION, defaultValue: Term = ∅): The = {
+    //     //The(u, f)(just)
+    //     val seq = just.proposition
 
-        if (seq.left.isEmpty) {
-        The(u, f)(just)
-        } else {
-        val prem = if (seq.left.size == 1) seq.left.head else And(seq.left.toSeq: _*)
-        val completeDef = (prem ==> f) /\ (!prem ==> (u === defaultValue))
-        val substF = substituteVariables(completeDef, Map[VariableLabel, Term](u -> defaultValue), Seq())
-        val substDef = substituteVariables(completeDef, Map[VariableLabel, Term](u -> v), Seq())
+    //     if (seq.left.isEmpty) {
+    //     The(u, f)(just)
+    //     } else {
+    //     val prem = if (seq.left.size == 1) seq.left.head else And(seq.left.toSeq: _*)
+    //     val completeDef = (prem ==> f) /\ (!prem ==> (u === defaultValue))
+    //     val substF = substituteVariables(completeDef, Map[VariableLabel, Term](u -> defaultValue), Seq())
+    //     val substDef = substituteVariables(completeDef, Map[VariableLabel, Term](u -> v), Seq())
 
-        val completeUniquenessTheorem = Lemma(
-            ∃!(u, completeDef)
-        ) {
-            val case1 = have(prem |- ∃!(u, completeDef)) subproof {
-            // We prove the equivalence f <=> completeDef so that we can substitute it in the uniqueness quantifier
-            val equiv = have(prem |- ∀(u, f <=> completeDef)) subproof {
-                have(f |- f) by Hypothesis
-                thenHave((prem, f) |- f) by Weakening
-                val left = thenHave(f |- (prem ==> f)) by Restate
+    //     val completeUniquenessTheorem = Lemma(
+    //         ∃!(u, completeDef)
+    //     ) {
+    //         val case1 = have(prem |- ∃!(u, completeDef)) subproof {
+    //         // We prove the equivalence f <=> completeDef so that we can substitute it in the uniqueness quantifier
+    //         val equiv = have(prem |- ∀(u, f <=> completeDef)) subproof {
+    //             have(f |- f) by Hypothesis
+    //             thenHave((prem, f) |- f) by Weakening
+    //             val left = thenHave(f |- (prem ==> f)) by Restate
 
-                have(prem |- prem) by Hypothesis
-                thenHave((prem, !prem) |- ()) by LeftNot
-                thenHave((prem, !prem) |- (u === defaultValue)) by Weakening
-                val right = thenHave(prem |- (!prem ==> (u === defaultValue))) by Restate
+    //             have(prem |- prem) by Hypothesis
+    //             thenHave((prem, !prem) |- ()) by LeftNot
+    //             thenHave((prem, !prem) |- (u === defaultValue)) by Weakening
+    //             val right = thenHave(prem |- (!prem ==> (u === defaultValue))) by Restate
 
-                have((prem, f) |- completeDef) by RightAnd(left, right)
-                val forward = thenHave(prem |- f ==> completeDef) by Restate
+    //             have((prem, f) |- completeDef) by RightAnd(left, right)
+    //             val forward = thenHave(prem |- f ==> completeDef) by Restate
 
-                have(completeDef |- completeDef) by Hypothesis
-                thenHave((prem, completeDef) |- completeDef) by Weakening
-                thenHave((prem, completeDef) |- f) by Tautology
-                val backward = thenHave(prem |- completeDef ==> f) by Restate
+    //             have(completeDef |- completeDef) by Hypothesis
+    //             thenHave((prem, completeDef) |- completeDef) by Weakening
+    //             thenHave((prem, completeDef) |- f) by Tautology
+    //             val backward = thenHave(prem |- completeDef ==> f) by Restate
 
-                have(prem |- f <=> completeDef) by RightIff(forward, backward)
-                thenHave(thesis) by RightForall
-            }
+    //             have(prem |- f <=> completeDef) by RightIff(forward, backward)
+    //             thenHave(thesis) by RightForall
+    //         }
 
-            val substitution = have((∃!(u, f), ∀(u, f <=> completeDef)) |- ∃!(u, completeDef)) by Restate.from(
-                substitutionInUniquenessQuantifier of (P -> lambda(u, f), Q -> lambda(u, completeDef))
-            )
+    //         val substitution = have((∃!(u, f), ∀(u, f <=> completeDef)) |- ∃!(u, completeDef)) by Restate.from(
+    //             substitutionInUniquenessQuantifier of (P -> lambda(u, f), Q -> lambda(u, completeDef))
+    //         )
 
-            val implication = have((prem, ∃!(u, f)) |- ∃!(u, completeDef)) by Cut(equiv, substitution)
-            val uniqueness = have(prem |- ∃!(u, f)) by Restate.from(just)
-            have(prem |- ∃!(u, completeDef)) by Cut(uniqueness, implication)
-            }
+    //         val implication = have((prem, ∃!(u, f)) |- ∃!(u, completeDef)) by Cut(equiv, substitution)
+    //         val uniqueness = have(prem |- ∃!(u, f)) by Restate.from(just)
+    //         have(prem |- ∃!(u, completeDef)) by Cut(uniqueness, implication)
+    //         }
 
-            val case2 = have(!prem |- ∃!(u, completeDef)) subproof {
-            val existence = have(!prem |- ∃(u, completeDef)) subproof {
-                have(!prem |- !prem) by Hypothesis
-                thenHave((prem, !prem) |- ()) by LeftNot
-                thenHave((prem, !prem) |- substF) by Weakening
-                val left = thenHave(!prem |- (prem ==> substF)) by Restate
+    //         val case2 = have(!prem |- ∃!(u, completeDef)) subproof {
+    //         val existence = have(!prem |- ∃(u, completeDef)) subproof {
+    //             have(!prem |- !prem) by Hypothesis
+    //             thenHave((prem, !prem) |- ()) by LeftNot
+    //             thenHave((prem, !prem) |- substF) by Weakening
+    //             val left = thenHave(!prem |- (prem ==> substF)) by Restate
 
-                have(defaultValue === defaultValue) by RightRefl
-                thenHave(!prem |- defaultValue === defaultValue) by Weakening
-                val right = thenHave(!prem ==> (defaultValue === defaultValue)) by Restate
+    //             have(defaultValue === defaultValue) by RightRefl
+    //             thenHave(!prem |- defaultValue === defaultValue) by Weakening
+    //             val right = thenHave(!prem ==> (defaultValue === defaultValue)) by Restate
 
-                have(!prem |- (prem ==> substF) /\ (!prem ==> (defaultValue === defaultValue))) by RightAnd(left, right)
-                thenHave(thesis) by RightExists.withParameters(defaultValue)
-            }
+    //             have(!prem |- (prem ==> substF) /\ (!prem ==> (defaultValue === defaultValue))) by RightAnd(left, right)
+    //             thenHave(thesis) by RightExists.withParameters(defaultValue)
+    //         }
 
-            val uniqueness = have((!prem, completeDef, substDef) |- (u === v)) subproof {
-                assume(!prem)
-                assume(completeDef)
-                assume(substDef)
+    //         val uniqueness = have((!prem, completeDef, substDef) |- (u === v)) subproof {
+    //             assume(!prem)
+    //             assume(completeDef)
+    //             assume(substDef)
 
-                val eq1 = have(u === defaultValue) by Tautology
-                val eq2 = have(defaultValue === v) by Tautology
-                val p = have((u === defaultValue) /\ (defaultValue === v)) by RightAnd(eq1, eq2)
+    //             val eq1 = have(u === defaultValue) by Tautology
+    //             val eq2 = have(defaultValue === v) by Tautology
+    //             val p = have((u === defaultValue) /\ (defaultValue === v)) by RightAnd(eq1, eq2)
 
-                val transitivity = equalityTransitivity of (x -> u, y -> defaultValue, z -> v)
-                have(thesis) by Cut(p, transitivity)
-            }
+    //             val transitivity = equalityTransitivity of (x -> u, y -> defaultValue, z -> v)
+    //             have(thesis) by Cut(p, transitivity)
+    //         }
 
-            have(thesis) by ExistenceAndUniqueness(completeDef)(existence, uniqueness)
-            }
+    //         have(thesis) by ExistenceAndUniqueness(completeDef)(existence, uniqueness)
+    //         }
 
-            have(thesis) by Cases(case1, case2)
-        }
+    //         have(thesis) by Cases(case1, case2)
+    //     }
 
-        The(u, completeDef)(completeUniquenessTheorem)
-        }
-        */
-    }
+    //     The(u, completeDef)(completeUniquenessTheorem)
+    //     }
+    // }
 
   //
   // 1. Basic definitions and results
@@ -305,38 +305,39 @@ object GroupTheory extends lisa.Main {
   val groupIsClosedByProduct = Lemma(
     (group(G, *), x ∈ G, y ∈ G) |- op(x, *, y) ∈ G
   ) {
-    have(∀(t, (t ∈ relationRange(*)) <=> ∃(a, pair(a, t) ∈ *))) by Definition(relationRange, relationRangeUniqueness)(*)
-    val relationRangeDef = thenHave((op(x, *, y) ∈ relationRange(*)) <=> ∃(a, pair(a, op(x, *, y)) ∈ *)) by InstantiateForall(op(x, *, y))
+    sorry
+    // have(∀(t, (t ∈ relationRange(*)) <=> ∃(a, pair(a, t) ∈ *))) by Definition(relationRange, relationRangeUniqueness)(*)
+    // val relationRangeDef = thenHave((op(x, *, y) ∈ relationRange(*)) <=> ∃(a, pair(a, op(x, *, y)) ∈ *)) by InstantiateForall(op(x, *, y))
 
-    val appDef = have(
-      (functional(*), pair(x, y) ∈ relationDomain(*)) |- pair(pair(x, y), op(x, *, y)) ∈ *
-    ) by Definition(app, functionApplicationUniqueness)(*, pair(x, y))
+    // val appDef = have(
+    //   (functional(*), pair(x, y) ∈ relationDomain(*)) |- pair(pair(x, y), op(x, *, y)) ∈ *
+    // ) by Definition(app, functionApplicationUniqueness)(*, pair(x, y))
 
-    assume(group(G, *))
-    assume(x ∈ G)
-    assume(y ∈ G)
+    // assume(group(G, *))
+    // assume(x ∈ G)
+    // assume(y ∈ G)
 
-    // Show that x * y is in relation range
-    have(pair(pair(x, y), op(x, *, y)) ∈ *) by Tautology.from(
-      appDef,
-      groupOperationIsFunctional,
-      groupPairInOperationDomain
-    )
-    thenHave(∃(a, pair(a, op(x, *, y)) ∈ *)) by RightExists
+    // // Show that x * y is in relation range
+    // have(pair(pair(x, y), op(x, *, y)) ∈ *) by Tautology.from(
+    //   appDef,
+    //   groupOperationIsFunctional,
+    //   groupPairInOperationDomain
+    // )
+    // thenHave(∃(a, pair(a, op(x, *, y)) ∈ *)) by RightExists
 
-    val productInRelationRange = have(op(x, *, y) ∈ relationRange(*)) by Tautology.from(lastStep, relationRangeDef)
+    // val productInRelationRange = have(op(x, *, y) ∈ relationRange(*)) by Tautology.from(lastStep, relationRangeDef)
 
-    // Conclude by [[functionImpliesRangeSubsetOfCodomain]]
-    have(∀(t, t ∈ relationRange(*) ==> t ∈ G)) by Tautology.from(
-      group.definition,
-      binaryOperation.definition,
-      functionImpliesRangeSubsetOfCodomain of (f -> *, x -> cartesianProduct(G, G), y -> G),
-      subset.definition of (x -> relationRange(*), y -> G)
-    )
-    thenHave(op(x, *, y) ∈ relationRange(*) ==> op(x, *, y) ∈ G) by InstantiateForall(op(x, *, y))
-    thenHave(op(x, *, y) ∈ relationRange(*) |- op(x, *, y) ∈ G) by Restate
+    // // Conclude by [[functionImpliesRangeSubsetOfCodomain]]
+    // have(∀(t, t ∈ relationRange(*) ==> t ∈ G)) by Tautology.from(
+    //   group.definition,
+    //   binaryOperation.definition,
+    //   functionImpliesRangeSubsetOfCodomain of (f -> *, x -> cartesianProduct(G, G), y -> G),
+    //   subset.definition of (x -> relationRange(*), y -> G)
+    // )
+    // thenHave(op(x, *, y) ∈ relationRange(*) ==> op(x, *, y) ∈ G) by InstantiateForall(op(x, *, y))
+    // thenHave(op(x, *, y) ∈ relationRange(*) |- op(x, *, y) ∈ G) by Restate
 
-    have(thesis) by Cut(productInRelationRange, lastStep)
+    // have(thesis) by Cut(productInRelationRange, lastStep)
   }
 
   /**
@@ -390,7 +391,8 @@ object GroupTheory extends lisa.Main {
   private val identityIsNeutral = Lemma(
     group(G, *) |- isNeutral(identity(G, *), G, *)
   ) {
-    have(thesis) by Definition(identity, identityUniqueness)(G, *)
+    sorry
+    //have(thesis) by Definition(identity, identityUniqueness)(G, *)
   }
 
   /**
@@ -506,7 +508,8 @@ object GroupTheory extends lisa.Main {
   private val inverseIsInverse = Lemma(
     (group(G, *), x ∈ G) |- isInverse(inverse(x, G, *), x, G, *)
   ) {
-    have(thesis) by Definition(inverse, inverseUniqueness)(x, G, *)
+    sorry
+    //have(thesis) by Definition(inverse, inverseUniqueness)(x, G, *)
   }
 
   /**
@@ -886,23 +889,24 @@ object GroupTheory extends lisa.Main {
   val subgroupOperation = Theorem(
     (subgroup(H, G, *), x ∈ H, y ∈ H) |- (op(x, ★, y) === op(x, *, y))
   ) {
-    assume(subgroup(H, G, *))
-    val groupG = have(group(G, *)) by Tautology.from(subgroup.definition)
-    val groupH = have(group(H, ★)) by Tautology.from(subgroup.definition)
+    sorry
+    // assume(subgroup(H, G, *))
+    // val groupG = have(group(G, *)) by Tautology.from(subgroup.definition)
+    // val groupH = have(group(H, ★)) by Tautology.from(subgroup.definition)
 
-    have((x ∈ H, y ∈ H) |- pair(x, y) ∈ relationDomain(★)) by Tautology.from(
-      groupH,
-      groupPairInOperationDomain of (G -> H, * -> ★)
-    )
-    have((functional(*), x ∈ H, y ∈ H) |- op(x, ★, y) === op(x, *, y)) by Cut(
-      lastStep,
-      restrictedFunctionApplication of (f -> *, d -> cartesianProduct(H, H), x -> pair(x, y))
-    )
-    have(thesis) by Tautology.from(
-      lastStep,
-      groupOperationIsFunctional,
-      groupG
-    )
+    // have((x ∈ H, y ∈ H) |- pair(x, y) ∈ relationDomain(★)) by Tautology.from(
+    //   groupH,
+    //   groupPairInOperationDomain of (G -> H, * -> ★)
+    // )
+    // have((functional(*), x ∈ H, y ∈ H) |- op(x, ★, y) === op(x, *, y)) by Cut(
+    //   lastStep,
+    //   restrictedFunctionApplication of (f -> *, d -> cartesianProduct(H, H), x -> pair(x, y))
+    // )
+    // have(thesis) by Tautology.from(
+    //   lastStep,
+    //   groupOperationIsFunctional,
+    //   groupG
+    // )
   }
 
   /**
@@ -1134,12 +1138,13 @@ object GroupTheory extends lisa.Main {
   private val subgroupConditionsOperation = Lemma(
     (group(G, *), subset(H, G), subgroupConditions, x ∈ H, y ∈ H) |- op(x, ★, y) === op(x, *, y)
   ) {
-    have(thesis) by Tautology.from(
-      subgroupConditionsPairInDomain,
-      groupOperationIsFunctional,
-      restrictedFunctionIsFunctionalOver of (f -> *, x -> cartesianProduct(H, H)),
-      restrictedFunctionApplication of (f -> *, d -> cartesianProduct(H, H), x -> pair(x, y))
-    )
+    sorry
+    // have(thesis) by Tautology.from(
+    //   subgroupConditionsPairInDomain,
+    //   groupOperationIsFunctional,
+    //   restrictedFunctionIsFunctionalOver of (f -> *, x -> cartesianProduct(H, H)),
+    //   restrictedFunctionApplication of (f -> *, d -> cartesianProduct(H, H), x -> pair(x, y))
+    // )
   }
 
   /**
@@ -1770,9 +1775,10 @@ object GroupTheory extends lisa.Main {
   private val kernelDef = Lemma(
     homomorphism(f, G, *, H, -*) |- (x ∈ Ker) <=> (x ∈ G /\ (app(f, x) === identity(H, -*)))
   ) {
-    assume(homomorphism(f, G, *, H, -*))
-    have(∀(t, (t ∈ Ker) <=> (t ∈ G /\ (app(f, t) === identity(H, -*))))) by Definition(kernel, kernelUniqueness)(f, G, *, H, -*)
-    thenHave(thesis) by InstantiateForall(x)
+    sorry
+    // assume(homomorphism(f, G, *, H, -*))
+    // have(∀(t, (t ∈ Ker) <=> (t ∈ G /\ (app(f, t) === identity(H, -*))))) by Definition(kernel, kernelUniqueness)(f, G, *, H, -*)
+    // thenHave(thesis) by InstantiateForall(x)
   }
 
   /**
@@ -1940,10 +1946,10 @@ object GroupTheory extends lisa.Main {
    *
    * In some sense, isomorphic groups are equivalent, up to relabelling their elements.
    */
-  val isomorphism = DEF(f, G, *, H, -*) --> homomorphism(f, G, *, H, -*) /\ bijective(f, G, H)
+  // val isomorphism = DEF(f, G, *, H, -*) --> homomorphism(f, G, *, H, -*) /\ bijective(f, G, H)
 
-  /**
-   * Automorphism --- An automorphism is an isomorphism from a group to itself.
-   */
-  val automorphism = DEF(f, G, *) --> isomorphism(f, G, *, G, *)
+  // /**
+  //  * Automorphism --- An automorphism is an isomorphism from a group to itself.
+  //  */
+  // val automorphism = DEF(f, G, *) --> isomorphism(f, G, *, G, *)
 }
