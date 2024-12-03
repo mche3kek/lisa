@@ -1,4 +1,4 @@
-package lisa.maths
+package lisa.maths.algebra
 
 // import lisa.automation.kernel.CommonTactics.Cases
 import lisa.automation.kernel.CommonTactics.Definition
@@ -25,120 +25,120 @@ import lisa.automation.settheory.SetTheoryTactics.TheConditional
  * Book : [[https://link.springer.com/book/10.1007/978-1-4684-9234-7]]
  */
 object GroupTheory extends lisa.Main {
-    // Groups
-    private val G, H = variable
+  // Groups
+  private val G, H = variable
 
-    // Group laws
-    private val * = variable
+  // Group laws
+  private val * = variable
 
-    // Group elements
-    private val a, b, c, d = variable
-    private val x, y, z = variable
-    private val t, u, v, w = variable
+  // Group elements
+  private val a, b, c, d = variable
+  private val x, y, z = variable
+  private val t, u, v, w = variable
 
-    // Identity elements
-    private val e, f = variable
+  // Identity elements
+  private val e, f = variable
 
-    // Predicates
-    private val P, Q = predicate[1]
+  // Predicates
+  private val P, Q = predicate[1]
 
-    //
-    // 0. Notation
-    //
+  //
+  // 0. Notation
+  //
 
-    /**
-    * Defines the element that is uniquely given by the uniqueness theorem, or falls back to the error element if the
-    * assumptions of the theorem are not satisfied.
-    *
-    * This is useful in defining specific elements in groups, where their uniqueness (and existence) strongly rely
-    * on the assumption of the group structure.
-    */
-    
-    // def TheConditional(u: Variable, f: Formula)(just: JUSTIFICATION, defaultValue: Term = ∅): The = {
-    //     //The(u, f)(just)
-    //     val seq = just.proposition
+  /**
+  * Defines the element that is uniquely given by the uniqueness theorem, or falls back to the error element if the
+  * assumptions of the theorem are not satisfied.
+  *
+  * This is useful in defining specific elements in groups, where their uniqueness (and existence) strongly rely
+  * on the assumption of the group structure.
+  */
+  
+  // def TheConditional(u: Variable, f: Formula)(just: JUSTIFICATION, defaultValue: Term = ∅): The = {
+  //     //The(u, f)(just)
+  //     val seq = just.proposition
 
-    //     if (seq.left.isEmpty) {
-    //     The(u, f)(just)
-    //     } else {
-    //     val prem = if (seq.left.size == 1) seq.left.head else And(seq.left.toSeq: _*)
-    //     val completeDef = (prem ==> f) /\ (!prem ==> (u === defaultValue))
-    //     val substF = substituteVariables(completeDef, Map[VariableLabel, Term](u -> defaultValue), Seq())
-    //     val substDef = substituteVariables(completeDef, Map[VariableLabel, Term](u -> v), Seq())
+  //     if (seq.left.isEmpty) {
+  //     The(u, f)(just)
+  //     } else {
+  //     val prem = if (seq.left.size == 1) seq.left.head else And(seq.left.toSeq: _*)
+  //     val completeDef = (prem ==> f) /\ (!prem ==> (u === defaultValue))
+  //     val substF = substituteVariables(completeDef, Map[VariableLabel, Term](u -> defaultValue), Seq())
+  //     val substDef = substituteVariables(completeDef, Map[VariableLabel, Term](u -> v), Seq())
 
-    //     val completeUniquenessTheorem = Lemma(
-    //         ∃!(u, completeDef)
-    //     ) {
-    //         val case1 = have(prem |- ∃!(u, completeDef)) subproof {
-    //         // We prove the equivalence f <=> completeDef so that we can substitute it in the uniqueness quantifier
-    //         val equiv = have(prem |- ∀(u, f <=> completeDef)) subproof {
-    //             have(f |- f) by Hypothesis
-    //             thenHave((prem, f) |- f) by Weakening
-    //             val left = thenHave(f |- (prem ==> f)) by Restate
+  //     val completeUniquenessTheorem = Lemma(
+  //         ∃!(u, completeDef)
+  //     ) {
+  //         val case1 = have(prem |- ∃!(u, completeDef)) subproof {
+  //         // We prove the equivalence f <=> completeDef so that we can substitute it in the uniqueness quantifier
+  //         val equiv = have(prem |- ∀(u, f <=> completeDef)) subproof {
+  //             have(f |- f) by Hypothesis
+  //             thenHave((prem, f) |- f) by Weakening
+  //             val left = thenHave(f |- (prem ==> f)) by Restate
 
-    //             have(prem |- prem) by Hypothesis
-    //             thenHave((prem, !prem) |- ()) by LeftNot
-    //             thenHave((prem, !prem) |- (u === defaultValue)) by Weakening
-    //             val right = thenHave(prem |- (!prem ==> (u === defaultValue))) by Restate
+  //             have(prem |- prem) by Hypothesis
+  //             thenHave((prem, !prem) |- ()) by LeftNot
+  //             thenHave((prem, !prem) |- (u === defaultValue)) by Weakening
+  //             val right = thenHave(prem |- (!prem ==> (u === defaultValue))) by Restate
 
-    //             have((prem, f) |- completeDef) by RightAnd(left, right)
-    //             val forward = thenHave(prem |- f ==> completeDef) by Restate
+  //             have((prem, f) |- completeDef) by RightAnd(left, right)
+  //             val forward = thenHave(prem |- f ==> completeDef) by Restate
 
-    //             have(completeDef |- completeDef) by Hypothesis
-    //             thenHave((prem, completeDef) |- completeDef) by Weakening
-    //             thenHave((prem, completeDef) |- f) by Tautology
-    //             val backward = thenHave(prem |- completeDef ==> f) by Restate
+  //             have(completeDef |- completeDef) by Hypothesis
+  //             thenHave((prem, completeDef) |- completeDef) by Weakening
+  //             thenHave((prem, completeDef) |- f) by Tautology
+  //             val backward = thenHave(prem |- completeDef ==> f) by Restate
 
-    //             have(prem |- f <=> completeDef) by RightIff(forward, backward)
-    //             thenHave(thesis) by RightForall
-    //         }
+  //             have(prem |- f <=> completeDef) by RightIff(forward, backward)
+  //             thenHave(thesis) by RightForall
+  //         }
 
-    //         val substitution = have((∃!(u, f), ∀(u, f <=> completeDef)) |- ∃!(u, completeDef)) by Restate.from(
-    //             substitutionInUniquenessQuantifier of (P -> lambda(u, f), Q -> lambda(u, completeDef))
-    //         )
+  //         val substitution = have((∃!(u, f), ∀(u, f <=> completeDef)) |- ∃!(u, completeDef)) by Restate.from(
+  //             substitutionInUniquenessQuantifier of (P -> lambda(u, f), Q -> lambda(u, completeDef))
+  //         )
 
-    //         val implication = have((prem, ∃!(u, f)) |- ∃!(u, completeDef)) by Cut(equiv, substitution)
-    //         val uniqueness = have(prem |- ∃!(u, f)) by Restate.from(just)
-    //         have(prem |- ∃!(u, completeDef)) by Cut(uniqueness, implication)
-    //         }
+  //         val implication = have((prem, ∃!(u, f)) |- ∃!(u, completeDef)) by Cut(equiv, substitution)
+  //         val uniqueness = have(prem |- ∃!(u, f)) by Restate.from(just)
+  //         have(prem |- ∃!(u, completeDef)) by Cut(uniqueness, implication)
+  //         }
 
-    //         val case2 = have(!prem |- ∃!(u, completeDef)) subproof {
-    //         val existence = have(!prem |- ∃(u, completeDef)) subproof {
-    //             have(!prem |- !prem) by Hypothesis
-    //             thenHave((prem, !prem) |- ()) by LeftNot
-    //             thenHave((prem, !prem) |- substF) by Weakening
-    //             val left = thenHave(!prem |- (prem ==> substF)) by Restate
+  //         val case2 = have(!prem |- ∃!(u, completeDef)) subproof {
+  //         val existence = have(!prem |- ∃(u, completeDef)) subproof {
+  //             have(!prem |- !prem) by Hypothesis
+  //             thenHave((prem, !prem) |- ()) by LeftNot
+  //             thenHave((prem, !prem) |- substF) by Weakening
+  //             val left = thenHave(!prem |- (prem ==> substF)) by Restate
 
-    //             have(defaultValue === defaultValue) by RightRefl
-    //             thenHave(!prem |- defaultValue === defaultValue) by Weakening
-    //             val right = thenHave(!prem ==> (defaultValue === defaultValue)) by Restate
+  //             have(defaultValue === defaultValue) by RightRefl
+  //             thenHave(!prem |- defaultValue === defaultValue) by Weakening
+  //             val right = thenHave(!prem ==> (defaultValue === defaultValue)) by Restate
 
-    //             have(!prem |- (prem ==> substF) /\ (!prem ==> (defaultValue === defaultValue))) by RightAnd(left, right)
-    //             thenHave(thesis) by RightExists.withParameters(defaultValue)
-    //         }
+  //             have(!prem |- (prem ==> substF) /\ (!prem ==> (defaultValue === defaultValue))) by RightAnd(left, right)
+  //             thenHave(thesis) by RightExists.withParameters(defaultValue)
+  //         }
 
-    //         val uniqueness = have((!prem, completeDef, substDef) |- (u === v)) subproof {
-    //             assume(!prem)
-    //             assume(completeDef)
-    //             assume(substDef)
+  //         val uniqueness = have((!prem, completeDef, substDef) |- (u === v)) subproof {
+  //             assume(!prem)
+  //             assume(completeDef)
+  //             assume(substDef)
 
-    //             val eq1 = have(u === defaultValue) by Tautology
-    //             val eq2 = have(defaultValue === v) by Tautology
-    //             val p = have((u === defaultValue) /\ (defaultValue === v)) by RightAnd(eq1, eq2)
+  //             val eq1 = have(u === defaultValue) by Tautology
+  //             val eq2 = have(defaultValue === v) by Tautology
+  //             val p = have((u === defaultValue) /\ (defaultValue === v)) by RightAnd(eq1, eq2)
 
-    //             val transitivity = equalityTransitivity of (x -> u, y -> defaultValue, z -> v)
-    //             have(thesis) by Cut(p, transitivity)
-    //         }
+  //             val transitivity = equalityTransitivity of (x -> u, y -> defaultValue, z -> v)
+  //             have(thesis) by Cut(p, transitivity)
+  //         }
 
-    //         have(thesis) by ExistenceAndUniqueness(completeDef)(existence, uniqueness)
-    //         }
+  //         have(thesis) by ExistenceAndUniqueness(completeDef)(existence, uniqueness)
+  //         }
 
-    //         have(thesis) by Cases(case1, case2)
-    //     }
+  //         have(thesis) by Cases(case1, case2)
+  //     }
 
-    //     The(u, completeDef)(completeUniquenessTheorem)
-    //     }
-    // }
+  //     The(u, completeDef)(completeUniquenessTheorem)
+  //     }
+  // }
 
   //
   // 1. Basic definitions and results
