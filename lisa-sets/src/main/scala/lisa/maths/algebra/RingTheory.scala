@@ -19,7 +19,7 @@ object RingTheory extends lisa.Main {
     private val e, f = variable
 
     // Group in the ring
-    private val G = variable
+    private val G, H = variable
 
     /**
     * Short-hand alias for `x operator y`.
@@ -27,8 +27,13 @@ object RingTheory extends lisa.Main {
     */
     inline def op(x: Term, operator : Term, y: Term) = app(operator, pair(x, y))
     
-    // Useful Lemma to define closure
-    private val closedByProducts = ∀(x, ∀(y, (x ∈ G /\ y ∈ G) ==> (op(x, *, y) ∈ G)))
+    //
+    // 1. Basic definitions and results
+    //
+
+    // Useful Lemmas
+    val closure = DEF(G, *) --> ∀(x, ∀(y, (x ∈ G /\ y ∈ G) ==> (op(x, *, y) ∈ G)))
+    private val absorbingElementZero = isNeutral(e, G, +) ==> ∀(x, x ∈ G ==> (op(x, *, e) === e) /\ (op(e, *, x) === e))
     
     /**
     * Distributivity --- `*,+` are distributive (in `R`) if `x * (y + z) = x * y + x * z 
@@ -39,10 +44,10 @@ object RingTheory extends lisa.Main {
                                                         /\ (op(op(x,+,y),*,z) === op(op(x,*,z),+,op(y,*,z)))))))
 
     /**
-    * Ring --- A ring (G, +, *) is a set along with a law of composition `*` and '+', satisfying [[abelianGroup]], [[closedByProducts]],
+    * Ring --- A ring (G, +, *) is a set along with a law of composition `*` and '+', satisfying [[abelianGroup]], [[closure]],
     * [[associativityAxiom]], [[identityExistence]] and [[distributivityAxiom]].
     */
-    val ring = DEF(G, +, *) --> group(G, +) /\ abelianGroup(G, +) /\ closedByProducts /\ associativityAxiom(G, *) 
+    val ring = DEF(G, +, *) --> group(G, +) /\ abelianGroup(G, +) /\ closure(G, *) /\ associativityAxiom(G, *) 
                                 /\ distributivityAxiom(G, *, +)
 
     /**
@@ -106,6 +111,34 @@ object RingTheory extends lisa.Main {
         }
         have(thesis) by ExistenceAndUniqueness(isNeutral(e, G, *))(existence, uniqueness)    
     }
+
+    //
+    // 2. Subrings
+    //
+
+    // By convention, this will always refer to the restricted operations.
+    private val ★ = restrictedFunction(+, cartesianProduct(H, H))
+    private val ♦ = restrictedFunction(*, cartesianProduct(H, H))
+
+    /**
+    * Subring --- `H` is a subring of `(G, +, *)` if `H` is a subset of `G`, such that `(H, +_H, *_H)` is a ring.
+    *
+    * We denote `H <= G` for `H` a subring of `G`.
+    */
+    val subring = DEF(H, G, +, *) --> ring(G, +, *) /\ subset(H, G) /\ ring(H, restrictedFunction(+, cartesianProduct(H, H)), restrictedFunction(*, cartesianProduct(H, H)))
+    
+    /**
+    * Another definition for a subring, when we have the identity element
+    * Subring --- `H` is a subring of `(G, +, *)` if `H` is closed under '*' and '+', and closed under additing inverse
+    * i.e. 'x ∈ H implies x^(-1) ∈ H'. Lastly, the multiplicative identity element is also in 'H'.
+    *
+    * We still denote `H <= G` for `H` a subring of `G`.
+    */
+    private val closedByInverse = DEF(G, *) --> ∀(x, x ∈ G ==> (inverse(x, G, *) ∈ G))
+    private val neutralIncluded = ∀(e, isNeutral(e, G, *) ==> e ∈ H)
+    val identitySubring = DEF(H, G, +, *) --> identityRing(G, +, *) /\ neutralIncluded /\ closure(G, restrictedFunction(*, cartesianProduct(H, H))) 
+                                                /\ closure(G, restrictedFunction(+, cartesianProduct(H, H)))
+                                                /\ closedByInverse(H, restrictedFunction(*, cartesianProduct(H, H)))
     
 
 }
