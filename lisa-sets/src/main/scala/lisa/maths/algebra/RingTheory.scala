@@ -183,4 +183,17 @@ object RingTheory extends lisa.Main {
      */
     val ringHomomorphism = DEF(f, G, +, *, H, -+, -*) --> ring(G, +, *) /\ ring(H, -+, -*) /\ functionFrom(f, G, H) /\ ∀(x, x ∈ G ==> ∀(y, y ∈ G ==> (app(f, op(x, *, y)) === op(app(f, x), -*, app(f, y))))) /\ ∀(x, x ∈ G ==> ∀(y, y ∈ G ==> (app(f, op(x, +, y)) === op(app(f, x), -+, app(f, y)))))
 
+    
+    /**
+     * Lemma --- If `f` is a ring homomorphism, then `f(x) ∈ H` for all `x ∈ G`.
+     */
+    private val imageInH = Lemma( (ringHomomorphism(f, G, +, *, H, -+, -*), x ∈ G) |- app(f, x) ∈ H ){
+        sorry
+        //assume(ringHomomorphism(f, G, +, *, H, -+, -*))
+        //have(ringHomomorphism(f, G, +, *, H, -+, -*) |- functionFrom(f, G, H)) by Tautology.from(ringHomomorphism.definition)
+        // have(thesis) by Cut(
+        // lastStep,
+        // functionAppInCodomain of (VariableLabel("t") -> x, VariableLabel("x") -> G, y -> H)
+        // )
+    }
 }
