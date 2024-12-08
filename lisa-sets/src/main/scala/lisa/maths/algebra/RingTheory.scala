@@ -13,7 +13,7 @@ object RingTheory extends lisa.Main {
     private val * = variable
 
     // Ring elements
-    private val x, y, z = variable
+    private val x, y, z, w = variable
 
     // Identity elements
     private val e, f = variable
@@ -31,9 +31,11 @@ object RingTheory extends lisa.Main {
     // 1. Basic definitions and results
     //
 
-    // Useful Lemmas
+    /**
+     * Closure --- 'G' is closed under the binary operator '*' if and only if, for all 'x, y' in 'G',
+     * we have 'x * y' in 'G'.
+     */
     val closure = DEF(G, *) --> ∀(x, ∀(y, (x ∈ G /\ y ∈ G) ==> (op(x, *, y) ∈ G)))
-    private val absorbingElementZero = isNeutral(e, G, +) ==> ∀(x, x ∈ G ==> (op(x, *, e) === e) /\ (op(e, *, x) === e))
     
     /**
      * Distributivity --- `*,+` are distributive (in `R`) if `x * (y + z) = x * y + x * z 
@@ -47,8 +49,11 @@ object RingTheory extends lisa.Main {
      * Ring --- A ring (G, +, *) is a set along with a law of composition `*` and '+', satisfying [[abelianGroup]], [[closure]],
      * [[associativityAxiom]], [[identityExistence]] and [[distributivityAxiom]].
      */
-    val ring = DEF(G, +, *) --> group(G, +) /\ abelianGroup(G, +) /\ closure(G, *) /\ associativityAxiom(G, *) 
-                                /\ distributivityAxiom(G, *, +)
+    val ring = DEF(G, +, *) --> group(G, +) /\ abelianGroup(G, +) /\ closure(G, *) /\ associativityAxiom(G, *) /\ distributivityAxiom(G, *, +)
+    
+    // The neutral element of the binary operator '+', denoted as '0', in the structure '(G, +, *)' is an absorbing element, 
+    // i.e. '0 * x = x * 0 = 0' for all 'x' in 'G'.
+    val absorbingElementZero = (ring(G,+,*) /\ isNeutral(e, G, +)) ==> ∀(x, x ∈ G ==> (op(x, *, e) === e) /\ (op(e, *, x) === e))
 
     /**
      * Ring with identity --- A ring with identity (G, +, *) is a ring containing an identity element under '*', satisfying [[identityExistence]].
@@ -78,6 +83,17 @@ object RingTheory extends lisa.Main {
     val additiveInverseUniqueness = Theorem((ring(G, +, *), x ∈ G) |- ∃!(y, isInverse(y, x, G, +)) ){
         assume(ring(G, +, *), x ∈ G)
         have(thesis) by Tautology.from(ring.definition, inverseUniqueness of (G -> G, * -> +))
+    }
+
+    /**
+     * Lemma --- The additive inverse element `y` of `x` is in `G`.
+     */
+    val additiveInverseInRing = Lemma(
+        (ring(G, +, *), x ∈ G) |- inverse(x, G, +) ∈ G
+    ) {
+        assume(ring(G, +, *))
+        val additiveGroup = have(group(G, +)) by Tautology.from(ring.definition)
+        have(thesis) by Tautology.from(inverseInGroup of (G -> G, * -> +), additiveGroup)
     }
 
     /**
@@ -112,6 +128,15 @@ object RingTheory extends lisa.Main {
         have(thesis) by ExistenceAndUniqueness(isNeutral(e, G, *))(existence, uniqueness)    
     }
 
+    /**
+     * Theorem --- In a ring '(G, +, *)', we have 'y + x = z + x ==> y = z'.
+     */
+    val CancellationLaw = Theorem((ring(G, +, *), x ∈ G, y ∈ G, z ∈ G) |- (op(y, +, x) === op(z, +, x)) ==> (y === z)){
+        assume(ring(G, +, *))
+        assume(x ∈ G, y ∈ G, z ∈ G)
+        have(thesis) by Tautology.from(ring.definition, rightCancellation of (G -> G, * -> +))
+    }
+
     //
     // 2. Subrings
     //
@@ -127,8 +152,13 @@ object RingTheory extends lisa.Main {
      */
     val subring = DEF(H, G, +, *) --> ring(G, +, *) /\ subset(H, G) /\ ring(H, ★, ♦)
     
+    // If 'x' is in 'G' and is invertible, then its inverse is also in 'G'
     private val closedByInverse = DEF(G, *) --> ∀(x, x ∈ G ==> (inverse(x, G, *) ∈ G))
-    private val neutralIncluded = ∀(e, isNeutral(e, G, *) ==> e ∈ H)
+
+    // If the set 'G' has an identity element under the binary operator '*', then this element is in the subset 'H'
+    // It is used to define a subring in another way than the previous definition
+    private val neutralIncluded = ∃(e, isNeutral(e, G, *) ==> e ∈ H)
+
     /**
      * Another definition for a subring, when we have the identity element
      * Subring --- `H` is a subring of `(G, +, *)` if `H` is closed under '*' and '+', and closed under additing inverse
@@ -187,13 +217,13 @@ object RingTheory extends lisa.Main {
     /**
      * Lemma --- If `f` is a ring homomorphism, then `f(x) ∈ H` for all `x ∈ G`.
      */
-    private val imageInH = Lemma( (ringHomomorphism(f, G, +, *, H, -+, -*), x ∈ G) |- app(f, x) ∈ H ){
-        sorry
+    //private val imageInH = Lemma( (ringHomomorphism(f, G, +, *, H, -+, -*), x ∈ G) |- app(f, x) ∈ H ){
+        //sorry
         //assume(ringHomomorphism(f, G, +, *, H, -+, -*))
         //have(ringHomomorphism(f, G, +, *, H, -+, -*) |- functionFrom(f, G, H)) by Tautology.from(ringHomomorphism.definition)
         // have(thesis) by Cut(
         // lastStep,
         // functionAppInCodomain of (VariableLabel("t") -> x, VariableLabel("x") -> G, y -> H)
         // )
-    }
+    //}
 }
