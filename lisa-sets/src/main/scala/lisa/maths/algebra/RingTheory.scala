@@ -12,14 +12,15 @@ object RingTheory extends lisa.Main {
     // Operations
     private val + = variable
     private val * = variable
+    private val - = variable
 
     // Ring elements
-    private val x, y, z, w = variable
+    private val x, y, z = variable
 
     // Identity elements
     private val e, f = variable
 
-    // Group in the ring
+    // Sets in the ring 
     private val G, H, U = variable
 
     /**
@@ -27,6 +28,12 @@ object RingTheory extends lisa.Main {
      * In ring context we have x*y or x+y
      */
     inline def op(x: Term, operator : Term, y: Term) = app(operator, pair(x, y))
+    
+    /**
+     * Definition of the substraction in a ring.
+     * for all 'x, y' in 'G', 'x - y = x + (-y)', where '-y' is the additive inverse of 'y' in 'G'
+     */
+    inline def substract(G: Term, x: Term, operatorMinus: Term, y: Term, operatorPlus: Term) = app(operatorPlus, pair(x, inverse(y, G, operatorPlus)))
     
     //
     // 1. Basic definitions and results
@@ -82,7 +89,7 @@ object RingTheory extends lisa.Main {
      * Theorem --- The additive inverse of an element `x` (i.e. `y` such that `x + y = y + x = e`) in `G` is unique.
      */
     val additiveInverseUniqueness = Theorem((ring(G, +, *), x ∈ G) |- ∃!(y, isInverse(y, x, G, +)) ){
-        assume(ring(G, +, *), x ∈ G)
+        assume(ring(G, +, *))
         have(thesis) by Tautology.from(ring.definition, inverseUniqueness of (G -> G, * -> +))
     }
 
@@ -134,45 +141,9 @@ object RingTheory extends lisa.Main {
      */
     val CancellationLaw = Theorem((ring(G, +, *), x ∈ G, y ∈ G, z ∈ G) |- (op(y, +, x) === op(z, +, x)) ==> (y === z)){
         assume(ring(G, +, *))
-        assume(x ∈ G, y ∈ G, z ∈ G)
         have(thesis) by Tautology.from(ring.definition, rightCancellation of (G -> G, * -> +))
     }
 
-    //
-    // 2. Subrings
-    //
-
-    // By convention, this will always refer to the restricted operations.
-    private val ★ = restrictedFunction(+, cartesianProduct(H, H))
-    private val ♦ = restrictedFunction(*, cartesianProduct(H, H))
-
-    /**
-     * Subring --- `H` is a subring of `(G, +, *)` if `H` is a subset of `G`, such that `(H, +_H, *_H)` is a ring.
-     *
-     * We denote `H <= G` for `H` a subring of `G`.
-     */
-    val subring = DEF(H, G, +, *) --> ring(G, +, *) /\ subset(H, G) /\ ring(H, restrictedFunction(+, cartesianProduct(H, H)), restrictedFunction(*, cartesianProduct(H, H)))
-
-    // If 'x' is in 'G' and is invertible, then its inverse is also in 'G'
-    private val closedByInverse = DEF(G, *) --> ∀(x, x ∈ G ==> (inverse(x, G, *) ∈ G))
-
-    // If the set 'G' has an identity element under the binary operator '*', then this element is in the subset 'H'
-    // It is used to define a subring in another way than the previous definition
-    private val neutralIncluded = ∃(e, isNeutral(e, G, *) ==> e ∈ H)
-
-    /**
-     * Another definition for a subring, when we have the identity element
-     * Subring --- `H` is a subring of `(G, +, *)` if `H` is closed under '*' and '+', and closed under additing inverse
-     * i.e. 'x ∈ H implies x^(-1) ∈ H'. Lastly, the multiplicative identity element is also in 'H'.
-     * 
-     *  We still denote `H <= G` for `H` a subring of `G`.
-     */
-    val identitySubring = DEF(H, G, +, *) --> identityRing(G, +, *) /\ neutralIncluded /\ closure(H, restrictedFunction(*, cartesianProduct(H, H))) /\ closure(H, restrictedFunction(+, cartesianProduct(H, H))) /\ closedByInverse(H, restrictedFunction(*, cartesianProduct(H, H)))
-
-    // By convention, this will always refer to the restricted operations on the group of units 'U'.
-    private val opU = restrictedFunction(*, cartesianProduct(U, U))
-    private val allUnitsIncluded = DEF(U, G, *) --> ∀(x, (x ∈ G) /\ ∃(y, isInverse(y, x, G, *)) ==> (x ∈ U))
-    
     /**
      * Group of units --- 'U' is the group of units of '(G, +, *)' if all the invertible elements under '*' of 'G' are in 'U',
      * and 'U' is a group under the operator '*'.
@@ -210,7 +181,85 @@ object RingTheory extends lisa.Main {
     }
 
     //
-    // 3. Ring Homomorphism
+    // 2. Subrings
+    //
+
+    // By convention, this will always refer to the restricted operations.
+    private val ★ = restrictedFunction(+, cartesianProduct(H, H))
+    private val ♦ = restrictedFunction(*, cartesianProduct(H, H))
+
+    /**
+     * Subring --- `H` is a subring of `(G, +, *)` if `H` is a subset of `G`, such that `(H, +_H, *_H)` is a ring.
+     *
+     * We denote `H <= G` for `H` a subring of `G`.
+     */
+    val subring = DEF(H, G, +, *) --> ring(G, +, *) /\ subset(H, G) /\ ring(H, restrictedFunction(+, cartesianProduct(H, H)), restrictedFunction(*, cartesianProduct(H, H)))
+
+    // If 'x' is in 'G' and is invertible, then its inverse is also in 'G'
+    private val closedByInverse = DEF(G, *) --> ∀(x, x ∈ G ==> (inverse(x, G, *) ∈ G))
+
+    // If the set 'G' has an identity element under the binary operator '*', then this element is in the subset 'H'
+    // It is used to define a subring in another way than the previous definition
+    private val neutralIncluded = ∃(e, isNeutral(e, G, *) ==> e ∈ H)
+
+    /**
+     * Another definition for a subring, when we have the identity element
+     * Subring --- `H` is a subring of `(G, +, *)` if `H` is closed under '*' and '+', and closed under additing inverse
+     * i.e. 'x ∈ H implies x^(-1) ∈ H'. Lastly, the multiplicative identity element is also in 'H'.
+     * 
+     *  We still denote `H <= G` for `H` a subring of `G`.
+     */
+    val identitySubring = DEF(H, G, +, *) --> identityRing(G, +, *) /\ neutralIncluded /\ closure(H, restrictedFunction(*, cartesianProduct(H, H))) /\ closure(H, restrictedFunction(+, cartesianProduct(H, H))) /\ closedByInverse(H, restrictedFunction(*, cartesianProduct(H, H)))
+    
+    //
+    // 3. Group of units
+    //
+
+    // By convention, this will always refer to the restricted operations on the group of units 'U'.
+    private val opU = restrictedFunction(*, cartesianProduct(U, U))
+    
+    // if an element has an inverse under '*' in 'G', then it is in the group of units 'U'
+    private val allUnitsIncluded = DEF(U, G, *) --> ∀(x, (x ∈ G) /\ ∃(y, isInverse(y, x, G, *)) ==> (x ∈ U))
+
+    /**
+     * Group of units --- 'U' is the group of units of '(G, +, *)' if all the invertible elements under '*' of 'G' are in 'U',
+     * and 'U' is a group under the operator '*'.
+     */
+    val unitGroup = DEF(U, G, +, *) --> ring(G, +, *) /\ group(U, opU) /\ allUnitsIncluded(U, G, *) /\ subset(U, G)
+
+    /**
+     * Lemma --- If an element is in the group of units, then it has an inverse under the binary operation '*' restricted to 'U'
+     */
+    val hasInverse = Lemma( (unitGroup(U, G, +, *), x ∈ U) |- ∃(y, isInverse(y, x, U, opU))){
+        assume(unitGroup(U, G, +, *))
+        val UisGroup = have(group(U, opU)) by Tautology.from(unitGroup.definition)
+        val statement1 = have(group(U, opU) |- ∀(x, x ∈ U ==> ∃(y, isInverse(y, x, U, opU)))) by Tautology.from(UisGroup, group.definition of(G -> U, * -> opU), inverseExistence.definition of(G -> U, * -> opU))
+        have(unitGroup(U, G, +, *) |- ∀(x, x ∈ U ==> ∃(y, isInverse(y, x, U, opU)))) by Tautology.from(statement1, unitGroup.definition)
+        thenHave(unitGroup(U, G, +, *) |- (x ∈ U ==> ∃(y, isInverse(y, x, U, opU)))) by InstantiateForall(x)
+        thenHave(thesis) by Restate
+    }
+
+    /**
+     * Theorem --- The inverse of an element `x` (i.e. `y` such that `x * y = y * x = e`) in the gropu of unit `U` is unique.
+     */
+    val hasInverseUniqueness = Theorem((unitGroup(U, G, +, *), x ∈ U) |- ∃!(y, isInverse(y, x, U, opU))){
+        assume(unitGroup(U, G, +, *))
+        val UisGroup = have(group(U, opU)) by Tautology.from(unitGroup.definition)
+        have(thesis) by Tautology.from(UisGroup, inverseUniqueness of (G -> U, * -> opU))
+    }
+
+    /**
+     * Lemma --- If an element in the structure '(G, +, *)' has an inverse, then it is in the group of units 'U'
+     */
+    val inverseInUnitGroup = Lemma(unitGroup(U, G, +, *) |- ((x ∈ G /\ ∃(y, isInverse(y, x, G, *))) ==> x ∈ U)){
+        assume(unitGroup(U, G, +, *))
+        have(unitGroup(U, G, +, *) |- ∀(x, (x ∈ G) /\ ∃(y, isInverse(y, x, G, *)) ==> (x ∈ U))) by Tautology.from(unitGroup.definition, allUnitsIncluded.definition)
+        thenHave(thesis) by InstantiateForall(x)
+    }
+
+
+    //
+    // 4. Ring Homomorphism
     //
 
     // Extra group composition law
