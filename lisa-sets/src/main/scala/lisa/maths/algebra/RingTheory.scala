@@ -7,6 +7,7 @@ import lisa.maths.Quantifiers.*
 import lisa.automation.kernel.CommonTactics.Definition
 import lisa.automation.kernel.CommonTactics.ExistenceAndUniqueness
 
+
 object RingTheory extends lisa.Main {
     // Operations
     private val + = variable
@@ -150,8 +151,8 @@ object RingTheory extends lisa.Main {
      *
      * We denote `H <= G` for `H` a subring of `G`.
      */
-    val subring = DEF(H, G, +, *) --> ring(G, +, *) /\ subset(H, G) /\ ring(H, ★, ♦)
-    
+    val subring = DEF(H, G, +, *) --> ring(G, +, *) /\ subset(H, G) /\ ring(H, restrictedFunction(+, cartesianProduct(H, H)), restrictedFunction(*, cartesianProduct(H, H)))
+
     // If 'x' is in 'G' and is invertible, then its inverse is also in 'G'
     private val closedByInverse = DEF(G, *) --> ∀(x, x ∈ G ==> (inverse(x, G, *) ∈ G))
 
@@ -166,11 +167,12 @@ object RingTheory extends lisa.Main {
      * 
      *  We still denote `H <= G` for `H` a subring of `G`.
      */
-    val identitySubring = DEF(H, G, +, *) --> identityRing(G, +, *) /\ neutralIncluded /\ closure(G, ♦) /\ closure(G, ★) /\ closedByInverse(H, ♦)
-    
+    val identitySubring = DEF(H, G, +, *) --> identityRing(G, +, *) /\ neutralIncluded /\ closure(H, restrictedFunction(*, cartesianProduct(H, H))) /\ closure(H, restrictedFunction(+, cartesianProduct(H, H))) /\ closedByInverse(H, restrictedFunction(*, cartesianProduct(H, H)))
+
     // By convention, this will always refer to the restricted operations on the group of units 'U'.
     private val opU = restrictedFunction(*, cartesianProduct(U, U))
     private val allUnitsIncluded = DEF(U, G, *) --> ∀(x, (x ∈ G) /\ ∃(y, isInverse(y, x, G, *)) ==> (x ∈ U))
+    
     /**
      * Group of units --- 'U' is the group of units of '(G, +, *)' if all the invertible elements under '*' of 'G' are in 'U',
      * and 'U' is a group under the operator '*'.
@@ -180,7 +182,7 @@ object RingTheory extends lisa.Main {
     /**
      * Lemma --- If an element is in the group of units, then it has an inverse under the binary operation '*' restricted to 'U'
      */
-    private val hasInverse = Lemma( (unitGroup(U, G, +, *), x ∈ U) |- ∃(y, isInverse(y, x, U, opU))){
+    val hasInverse = Lemma( (unitGroup(U, G, +, *), x ∈ U) |- ∃(y, isInverse(y, x, U, opU))){
         assume(unitGroup(U, G, +, *))
         val UisGroup = have(group(U, opU)) by Tautology.from(unitGroup.definition)
         val statement1 = have(group(U, opU) |- ∀(x, x ∈ U ==> ∃(y, isInverse(y, x, U, opU)))) by Tautology.from(UisGroup, group.definition of(G -> U, * -> opU), inverseExistence.definition of(G -> U, * -> opU))
@@ -190,9 +192,18 @@ object RingTheory extends lisa.Main {
     }
 
     /**
+     * Theorem --- The inverse of an element `x` (i.e. `y` such that `x * y = y * x = e`) in the gropu of unit `U` is unique.
+     */
+    val hasInverseUniqueness = Theorem((unitGroup(U, G, +, *), x ∈ U) |- ∃!(y, isInverse(y, x, U, opU))){
+        assume(unitGroup(U, G, +, *))
+        val UisGroup = have(group(U, opU)) by Tautology.from(unitGroup.definition)
+        have(thesis) by Tautology.from(UisGroup, inverseUniqueness of (G -> U, * -> opU))
+    }
+
+    /**
      * Lemma --- If an element in the structure '(G, +, *)' has an inverse, then it is in the group of units 'U'
      */
-    private val inverseInUnitGroup = Lemma(unitGroup(U, G, +, *) |- ((x ∈ G /\ ∃(y, isInverse(y, x, G, *))) ==> x ∈ U)){
+    val inverseInUnitGroup = Lemma(unitGroup(U, G, +, *) |- ((x ∈ G /\ ∃(y, isInverse(y, x, G, *))) ==> x ∈ U)){
         assume(unitGroup(U, G, +, *))
         have(unitGroup(U, G, +, *) |- ∀(x, (x ∈ G) /\ ∃(y, isInverse(y, x, G, *)) ==> (x ∈ U))) by Tautology.from(unitGroup.definition, allUnitsIncluded.definition)
         thenHave(thesis) by InstantiateForall(x)
@@ -212,7 +223,6 @@ object RingTheory extends lisa.Main {
      *
      */
     val ringHomomorphism = DEF(f, G, +, *, H, -+, -*) --> ring(G, +, *) /\ ring(H, -+, -*) /\ functionFrom(f, G, H) /\ ∀(x, x ∈ G ==> ∀(y, y ∈ G ==> (app(f, op(x, *, y)) === op(app(f, x), -*, app(f, y))))) /\ ∀(x, x ∈ G ==> ∀(y, y ∈ G ==> (app(f, op(x, +, y)) === op(app(f, x), -+, app(f, y)))))
-
     
     /**
      * Lemma --- If `f` is a ring homomorphism, then `f(x) ∈ H` for all `x ∈ G`.
