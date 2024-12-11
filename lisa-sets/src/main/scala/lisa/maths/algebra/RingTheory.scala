@@ -2,6 +2,7 @@ package lisa.maths.algebra
 
 import lisa.maths.algebra.GroupTheory.*
 import lisa.maths.settheory.SetTheory.*
+import lisa.maths.settheory.functions.FunctionProperties.*
 import lisa.maths.settheory.functions.Functionals.* 
 import lisa.maths.Quantifiers.*
 import lisa.automation.kernel.CommonTactics.Definition
@@ -206,6 +207,7 @@ object RingTheory extends lisa.Main {
     /**
      * Theorem --- The inverse of an element `x` (i.e. `y` such that `x * y = y * x = e`) in the gropu of unit `U` is unique.
      */
+
     val hasInverseUniqueness = Theorem((unitGroup(U, G, +, *), x ∈ U) |- ∃!(y, isInverse(y, x, U, opU))){
         assume(unitGroup(U, G, +, *))
         val UisGroup = have(group(U, opU)) by Tautology.from(unitGroup.definition)
@@ -243,10 +245,9 @@ object RingTheory extends lisa.Main {
     private val imageInH = Lemma( (ringHomomorphism(f, G, +, *, H, -+, -*), x ∈ G) |- app(f, x) ∈ H ){
         assume(ringHomomorphism(f, G, +, *, H, -+, -*))
         have(ringHomomorphism(f, G, +, *, H, -+, -*) |- functionFrom(f, G, H)) by Tautology.from(ringHomomorphism.definition)
-        sorry
-        // have(thesis) by Cut(
-        // lastStep,
-        // functionAppInCodomain of (VariableLabel("t") -> x, VariableLabel("x") -> G, y -> H)
-        // )
+        have(thesis) by Cut(
+        lastStep,
+        functionAppInCodomain of (t -> x, x -> G, y -> H)
+        )
     }
 }
