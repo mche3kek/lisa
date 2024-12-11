@@ -144,42 +144,6 @@ object RingTheory extends lisa.Main {
         have(thesis) by Tautology.from(ring.definition, rightCancellation of (G -> G, * -> +))
     }
 
-    /**
-     * Group of units --- 'U' is the group of units of '(G, +, *)' if all the invertible elements under '*' of 'G' are in 'U',
-     * and 'U' is a group under the operator '*'.
-     */
-    val unitGroup = DEF(U, G, +, *) --> ring(G, +, *) /\ group(U, opU) /\ allUnitsIncluded(U, G, *) /\ subset(U, G)
-
-    /**
-     * Lemma --- If an element is in the group of units, then it has an inverse under the binary operation '*' restricted to 'U'
-     */
-    val hasInverse = Lemma( (unitGroup(U, G, +, *), x ∈ U) |- ∃(y, isInverse(y, x, U, opU))){
-        assume(unitGroup(U, G, +, *))
-        val UisGroup = have(group(U, opU)) by Tautology.from(unitGroup.definition)
-        val statement1 = have(group(U, opU) |- ∀(x, x ∈ U ==> ∃(y, isInverse(y, x, U, opU)))) by Tautology.from(UisGroup, group.definition of(G -> U, * -> opU), inverseExistence.definition of(G -> U, * -> opU))
-        have(unitGroup(U, G, +, *) |- ∀(x, x ∈ U ==> ∃(y, isInverse(y, x, U, opU)))) by Tautology.from(statement1, unitGroup.definition)
-        thenHave(unitGroup(U, G, +, *) |- (x ∈ U ==> ∃(y, isInverse(y, x, U, opU)))) by InstantiateForall(x)
-        thenHave(thesis) by Restate
-    }
-
-    /**
-     * Theorem --- The inverse of an element `x` (i.e. `y` such that `x * y = y * x = e`) in the gropu of unit `U` is unique.
-     */
-    val hasInverseUniqueness = Theorem((unitGroup(U, G, +, *), x ∈ U) |- ∃!(y, isInverse(y, x, U, opU))){
-        assume(unitGroup(U, G, +, *))
-        val UisGroup = have(group(U, opU)) by Tautology.from(unitGroup.definition)
-        have(thesis) by Tautology.from(UisGroup, inverseUniqueness of (G -> U, * -> opU))
-    }
-
-    /**
-     * Lemma --- If an element in the structure '(G, +, *)' has an inverse, then it is in the group of units 'U'
-     */
-    val inverseInUnitGroup = Lemma(unitGroup(U, G, +, *) |- ((x ∈ G /\ ∃(y, isInverse(y, x, G, *))) ==> x ∈ U)){
-        assume(unitGroup(U, G, +, *))
-        have(unitGroup(U, G, +, *) |- ∀(x, (x ∈ G) /\ ∃(y, isInverse(y, x, G, *)) ==> (x ∈ U))) by Tautology.from(unitGroup.definition, allUnitsIncluded.definition)
-        thenHave(thesis) by InstantiateForall(x)
-    }
-
     //
     // 2. Subrings
     //
@@ -276,13 +240,13 @@ object RingTheory extends lisa.Main {
     /**
      * Lemma --- If `f` is a ring homomorphism, then `f(x) ∈ H` for all `x ∈ G`.
      */
-    //private val imageInH = Lemma( (ringHomomorphism(f, G, +, *, H, -+, -*), x ∈ G) |- app(f, x) ∈ H ){
-        //sorry
-        //assume(ringHomomorphism(f, G, +, *, H, -+, -*))
-        //have(ringHomomorphism(f, G, +, *, H, -+, -*) |- functionFrom(f, G, H)) by Tautology.from(ringHomomorphism.definition)
+    private val imageInH = Lemma( (ringHomomorphism(f, G, +, *, H, -+, -*), x ∈ G) |- app(f, x) ∈ H ){
+        assume(ringHomomorphism(f, G, +, *, H, -+, -*))
+        have(ringHomomorphism(f, G, +, *, H, -+, -*) |- functionFrom(f, G, H)) by Tautology.from(ringHomomorphism.definition)
+        sorry
         // have(thesis) by Cut(
         // lastStep,
         // functionAppInCodomain of (VariableLabel("t") -> x, VariableLabel("x") -> G, y -> H)
         // )
-    //}
+    }
 }
