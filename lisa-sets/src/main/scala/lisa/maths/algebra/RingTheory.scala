@@ -150,17 +150,17 @@ object RingTheory extends lisa.Main {
     // ring(G, +, *) /\ identityExistence(G, *)
     // val identityExistence = DEF(G, *) --> ∃(e, isNeutral(e, G, *))
     // val isNeutral = DEF(e, G, *) --> (e ∈ G /\ ∀(x, (x ∈ G) ==> ((op(e, *, x) === x) /\ (op(x, *, e) === x))))
-    /**
-    private val identityIsNeutral = Lemma(identityRing(G, +, *) |- isNeutral(multiplicativeIdentity(G, +, *), G, *)) {
-        have(thesis) by Definition(multiplicativeIdentity, multiplicativeIdentityUniqueness)(G, +, *)
+    
+    //private val identityIsNeutral = Lemma(identityRing(G, +, *) |- isNeutral(multiplicativeIdentity(G, +, *), G, *)) {
+      //  have(isNeutral(multiplicativeIdentity(G,+,*), G, *)) by Definition(multiplicativeIdentity, multiplicativeIdentityUniqueness)(G, +, *)
         /**
         assume(identityRing(G, +, *))
         val test = have(∃!(e, isNeutral(e, G, *))) by Tautology.from(identityRing.definition, multiplicativeIdentityUniqueness)
         val id = multiplicativeIdentity(G, +, *)
         have(isNeutral(id, G, *)) by Tautology.from(multiplicativeIdentity.definition)
         */
-    }
-    */
+    //}
+    
     
 
     /**
@@ -283,7 +283,6 @@ object RingTheory extends lisa.Main {
     private val imageInCodomain = Lemma((ringHomomorphism(f, G, +, *, H, -+, -*), z ∈ G) |- app(f, z) ∈ H ){ 
         assume(ringHomomorphism(f, G, +, *, H, -+, -*))
         val haveFunction = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- functionFrom(f, G, H)) by Tautology.from(ringHomomorphism.definition)
-
         have(thesis) by Tautology.from(haveFunction, functionAppInCodomain of (x -> G, y -> H, t -> z)) 
      }
         
