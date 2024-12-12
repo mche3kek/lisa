@@ -195,28 +195,6 @@ object FunctionProperties extends lisa.Main {
   val constantFunction = DEF(x, t) --> cartesianProduct(x, singleton(t))
 
   /**
-   * Theorem --- the value of a constant function is the same for all elements in its domain.
-   *
-   *  `a ∈ x |- app(constantFunction(x, t), a) = t`
-   */
-  val constantFunctionApplication = Theorem(
-    in(a, x) |- app(constantFunction(x, t), a) === t
-  ) {
-    assume(in(a, x))
-    have(functionFrom(constantFunction(x, t), x, singleton(t))) by Weakening(constantFunctionFunctionFrom)
-
-    have(in(app(constantFunction(x, t), a), singleton(t))) by Tautology.from(
-      functionFromApplication of (f := constantFunction(x, t), y := singleton(t)),
-      lastStep
-    )
-
-    have(thesis) by Tautology.from(
-      singletonHasNoExtraElements of (y := app(constantFunction(x, t), a), x := t),
-      lastStep
-    )
-  }
-
-  /**
    * Theorem --- the domain of a constant function is the set it is defined on.
    *
    *  `dom(constantFunction(x, t)) = x`
@@ -339,6 +317,29 @@ object FunctionProperties extends lisa.Main {
     )
   }
 
+  /**
+   * Theorem --- the value of a constant function is the same for all elements in its domain.
+   *
+   *  `a ∈ x |- app(constantFunction(x, t), a) = t`
+   */
+  val constantFunctionApplication = Theorem(
+    in(a, x) |- app(constantFunction(x, t), a) === t
+  ) {
+    assume(in(a, x))
+    have(functionFrom(constantFunction(x, t), x, singleton(t))) by Weakening(constantFunctionFunctionFrom)
+
+    have(in(app(constantFunction(x, t), a), singleton(t))) by Tautology.from(
+      functionFromApplication of (f := constantFunction(x, t), y := singleton(t)),
+      lastStep
+    )
+
+    have(thesis) by Tautology.from(
+      singletonHasNoExtraElements of (y := app(constantFunction(x, t), a), x := t),
+      lastStep
+    )
+  }
+
+  
   /**
    * Theorem --- Sigma with a constant function is the cartesian product
    *

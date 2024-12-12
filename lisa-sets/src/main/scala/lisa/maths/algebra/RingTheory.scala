@@ -7,7 +7,8 @@ import lisa.maths.settheory.functions.Functionals.*
 import lisa.maths.Quantifiers.*
 import lisa.automation.kernel.CommonTactics.Definition
 import lisa.automation.kernel.CommonTactics.ExistenceAndUniqueness
-
+import lisa.kernel.fol.FOL.VariableLabel
+import lisa.automation.settheory.SetTheoryTactics.TheConditional
 
 object RingTheory extends lisa.Main {
     // Operations
@@ -16,7 +17,7 @@ object RingTheory extends lisa.Main {
     private val - = variable
 
     // Ring elements
-    private val x, y, z = variable
+    private val x, y, z, t = variable
 
     // Identity elements
     private val e, f = variable
@@ -68,6 +69,7 @@ object RingTheory extends lisa.Main {
      * Ring with identity --- A ring with identity (G, +, *) is a ring containing an identity element under '*', satisfying [[identityExistence]].
      */
     val identityRing = DEF(G, +, *) --> ring(G, +, *) /\ identityExistence(G, *)
+
     
     /**
      * Commutative ring --- A ring is said to be commutative if every element commutes under '*',
@@ -136,6 +138,41 @@ object RingTheory extends lisa.Main {
         }
         have(thesis) by ExistenceAndUniqueness(isNeutral(e, G, *))(existence, uniqueness)    
     }
+
+    /**
+     * Defines the multiplicative identity element of `(G, +, *)`.
+     */
+    val multiplicativeIdentity = DEF(G, +, *) --> TheConditional(e, isNeutral(e, G, *))(multiplicativeIdentityUniqueness)
+
+    /**
+     * Lemma --- The identity element is neutral by definition.
+     */
+    // ring(G, +, *) /\ identityExistence(G, *)
+    // val identityExistence = DEF(G, *) --> ∃(e, isNeutral(e, G, *))
+    // val isNeutral = DEF(e, G, *) --> (e ∈ G /\ ∀(x, (x ∈ G) ==> ((op(e, *, x) === x) /\ (op(x, *, e) === x))))
+    /**
+    private val identityIsNeutral = Lemma(identityRing(G, +, *) |- isNeutral(multiplicativeIdentity(G, +, *), G, *)) {
+        have(thesis) by Definition(multiplicativeIdentity, multiplicativeIdentityUniqueness)(G, +, *)
+        /**
+        assume(identityRing(G, +, *))
+        val test = have(∃!(e, isNeutral(e, G, *))) by Tautology.from(identityRing.definition, multiplicativeIdentityUniqueness)
+        val id = multiplicativeIdentity(G, +, *)
+        have(isNeutral(id, G, *)) by Tautology.from(multiplicativeIdentity.definition)
+        */
+    }
+    */
+    
+
+    /**
+     * Theorem --- The identity element of an identity ring belongs to the ring.
+     */
+    /**
+    val identityInRing = Theorem(identityRing(G, +, *) |- (multiplicativeIdentity(G, +, *) ∈ G)){
+        assume(identityRing(G, +, *))
+        have(thesis) by Tautology.from(identityIsNeutral, isNeutral.definition of (e -> multiplicativeIdentity(G, +, *)))
+    }
+    */
+    
 
     /**
      * Theorem --- In a ring '(G, +, *)', we have 'y + x = z + x ==> y = z'.
@@ -242,12 +279,37 @@ object RingTheory extends lisa.Main {
     /**
      * Lemma --- If `f` is a ring homomorphism, then `f(x) ∈ H` for all `x ∈ G`.
      */
-    private val imageInH = Lemma( (ringHomomorphism(f, G, +, *, H, -+, -*), x ∈ G) |- app(f, x) ∈ H ){
+    
+    private val imageInCodomain = Lemma((ringHomomorphism(f, G, +, *, H, -+, -*), z ∈ G) |- app(f, z) ∈ H ){ 
         assume(ringHomomorphism(f, G, +, *, H, -+, -*))
-        have(ringHomomorphism(f, G, +, *, H, -+, -*) |- functionFrom(f, G, H)) by Tautology.from(ringHomomorphism.definition)
-        have(thesis) by Cut(
-        lastStep,
-        functionAppInCodomain of (t -> x, x -> G, y -> H)
-        )
+        val haveFunction = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- functionFrom(f, G, H)) by Tautology.from(ringHomomorphism.definition)
+
+        have(thesis) by Tautology.from(haveFunction, functionAppInCodomain of (x -> G, y -> H, t -> z)) 
+     }
+        
+
+    /**
+     * Theorem --- If `f` is a ring homomorphism between `G` and `H`, then `f(e_G) = e_H`.
+     */
+    /**
+    val ringHomomorphismMapsIdentityToIdentity = Theorem(
+        (ringHomomorphism(f, G, +, *, H, -+, -*), identityRing(G, +, *), identityRing(H, -+, -*)) |- app(f, identity(G, *)) === identity(H, -*)
+    ){
+        assume(ringHomomorphism(f, G, +, *, H, -+, -*))
+        assume(identityRing(G, +, *))
+        assume(identityRing(H, -+, -*))
+        val e = multiplicativeIdentity(G, +, *)
+        
+        // 0. e * e = e (to apply substitution)
+        have(op(e, *, e) === e) by Tautology.from(isNeutral.definition)
+
+        // 1. f(e * e) = f(e) 
+
+        // 2. f(e * e) = f(e) ** f(e)
+
+        // 3. f(e) ** f(e) = f(e)
+
+        // Conclude by idempotence
     }
+    */
 }
