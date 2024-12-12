@@ -147,32 +147,49 @@ object RingTheory extends lisa.Main {
     /**
      * Lemma --- The identity element is neutral by definition.
      */
-    // ring(G, +, *) /\ identityExistence(G, *)
-    // val identityExistence = DEF(G, *) --> ∃(e, isNeutral(e, G, *))
-    // val isNeutral = DEF(e, G, *) --> (e ∈ G /\ ∀(x, (x ∈ G) ==> ((op(e, *, x) === x) /\ (op(x, *, e) === x))))
-    
-    //private val identityIsNeutral = Lemma(identityRing(G, +, *) |- isNeutral(multiplicativeIdentity(G, +, *), G, *)) {
-      //  have(isNeutral(multiplicativeIdentity(G,+,*), G, *)) by Definition(multiplicativeIdentity, multiplicativeIdentityUniqueness)(G, +, *)
-        /**
-        assume(identityRing(G, +, *))
-        val test = have(∃!(e, isNeutral(e, G, *))) by Tautology.from(identityRing.definition, multiplicativeIdentityUniqueness)
-        val id = multiplicativeIdentity(G, +, *)
-        have(isNeutral(id, G, *)) by Tautology.from(multiplicativeIdentity.definition)
-        */
-    //}
-    
-    
+    private val identityIsNeutral = Lemma(identityRing(G, +, *) |- isNeutral(multiplicativeIdentity(G, +, *), G, *)) {
+        sorry
+        // have(isNeutral(multiplicativeIdentity(G, +, *), G, *)) by Definition(multiplicativeIdentity, multiplicativeIdentityUniqueness)(G, +, *)
+    }
+
+    /**
+     * Lemma --- For any element `x` in a group `(G, *)`, we have `x * e = e * x = x`.
+     *
+     * Practical reformulation of [[identityIsNeutral]].
+     */
+    val identityNeutrality = Lemma(
+        (identityRing(G, +, *), x ∈ G) |- (op(multiplicativeIdentity(G, +, *), *, x) === x) /\ (op(x, *, multiplicativeIdentity(G, +, *)) === x)
+    ) {
+        have(identityRing(G, +, *) |- ∀(x, (x ∈ G) ==> ((op(multiplicativeIdentity(G, +, *), *, x) === x) /\ (op(x, *, multiplicativeIdentity(G, +, *)) === x)))) by Tautology.from(
+            identityIsNeutral,
+            isNeutral.definition of (e -> multiplicativeIdentity(G, +, *))
+        )
+        thenHave(identityRing(G, +, *) |- (x ∈ G) ==> ((op(multiplicativeIdentity(G, +, *), *, x) === x) /\ (op(x, *, multiplicativeIdentity(G, +, *)) === x))) by InstantiateForall(x)
+        thenHave(thesis) by Restate
+    }
 
     /**
      * Theorem --- The identity element of an identity ring belongs to the ring.
      */
-    /**
     val identityInRing = Theorem(identityRing(G, +, *) |- (multiplicativeIdentity(G, +, *) ∈ G)){
         assume(identityRing(G, +, *))
         have(thesis) by Tautology.from(identityIsNeutral, isNeutral.definition of (e -> multiplicativeIdentity(G, +, *)))
     }
-    */
     
+    /**
+     * Theorem --- The multiplicative identity `e` of a ring `(G, +, *)` is idempotent, i.e. `e * e = e'.
+     */
+    /**
+    val multiplicativeIdentityIdempotence = Theorem((identityRing(G, +, *)) |- (op(multiplicativeIdentity(G, +, *), *, multiplicativeIdentity(G, +, *)) === multiplicativeIdentity(G, +, *))) {
+        assume(identityRing(G, +, *))
+        assume(x∈G)
+        assume(multiplicativeIdentity(G, +, *) ∈ G)
+        have((op(multiplicativeIdentity(G, +, *), *, x) === x) /\ (op(x, *, multiplicativeIdentity(G, +, *)) === x)) by Tautology.from(identityNeutrality)
+        val test = thenHave(op(multiplicativeIdentity(G, +, *), *, x) === x) by Weakening
+       
+        have(thesis) by Tautology.from(test of (x -> multiplicativeIdentity(G, +, *)))
+    }
+    */
 
     /**
      * Theorem --- In a ring '(G, +, *)', we have 'y + x = z + x ==> y = z'.
@@ -279,14 +296,65 @@ object RingTheory extends lisa.Main {
     /**
      * Lemma --- If `f` is a ring homomorphism, then `f(x) ∈ H` for all `x ∈ G`.
      */
-    
     private val imageInCodomain = Lemma((ringHomomorphism(f, G, +, *, H, -+, -*), z ∈ G) |- app(f, z) ∈ H ){ 
         assume(ringHomomorphism(f, G, +, *, H, -+, -*))
         val haveFunction = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- functionFrom(f, G, H)) by Tautology.from(ringHomomorphism.definition)
         have(thesis) by Tautology.from(haveFunction, functionAppInCodomain of (x -> G, y -> H, t -> z)) 
      }
         
+    
+    /**
+     * Theorem --- If `f` is a ring homomorphism between `G` and `H`, then `f(e_G) = e_H`.
+     */
+   
+    // val ringHomomorphismMapsZeroToZero = Theorem((ringHomomorphism(f, G, +, *, H, -+, -*), ring(G, +, *)) |- (app(f, identity(G,+)) === identity(H, -+))){
+    //     assume(ringHomomorphism(f, G, +, *, H, -+, -*))
+    //     assume(ring(G, +, *))
 
+    //     val e = identity(G, *)
+
+    //     val groupG = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- group(G, +)) by Tautology.from(ringHomomorphism.definition, ring.definition)
+    //     val groupH = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- group(H, -+)) by Tautology.from(ringHomomorphism.definition, ring.definition of (G -> H, + -> -+))
+
+    //     val identityInG = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- e ∈ G) by Cut(groupG, identityInGroup)
+    //     val appInH = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- app(f, e) ∈ H) by Cut(identityInG, imageInCodomain of (z -> e))
+
+    //     // 0. e * e = e (to apply substitution)
+    //     have(group(G, +) |- op(e, +, e) === e) by Cut(
+    //        identityInGroup of (* -> +),
+    //        identityIdempotence of (* -> +, x -> e)
+    //     )
+    //     val eq0 = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- op(e, +, e) === e) by Cut(groupG, lastStep)
+
+    // // // 1. f(e * e) = f(e)
+    // // have(app(f, e) === app(f, e)) by RightRefl
+    // // thenHave(op(e, *, e) === e |- app(f, op(e, *, e)) === app(f, e)) by RightSubstEq(
+    // //   List((op(e, *, e), e)),
+    // //   lambda(z, app(f, z) === app(f, e))
+    // // )
+    // // val eq1 = have(homomorphism(f, G, *, H, -*) |- app(f, op(e, *, e)) === app(f, e)) by Cut(eq0, lastStep)
+
+    // // // 2. f(e * e) = f(e) ** f(e)
+    // // val eq2 = have(homomorphism(f, G, *, H, -*) |- app(f, op(e, *, e)) === op(app(f, e), -*, app(f, e))) by Cut(
+    // //   identityInG,
+    // //   homomorphismApplication of (x -> e, y -> e)
+    // // )
+
+    // // // 3. f(e) ** f(e) = f(e)
+    // // val eq3 = have(homomorphism(f, G, *, H, -*) |- op(app(f, e), -*, app(f, e)) === app(f, e)) by Equalities(eq1, eq2)
+
+    // // // Conclude by idempotence
+    // // have((homomorphism(f, G, *, H, -*), app(f, e) ∈ H) |- (op(app(f, e), -*, app(f, e)) === app(f, e)) <=> (app(f, e) === identity(H, -*))) by Cut(
+    // //   groupH,
+    // //   identityIdempotence of (x -> app(f, e), G -> H, * -> -*)
+    // // )
+    // // have(homomorphism(f, G, *, H, -*) |- (op(app(f, e), -*, app(f, e)) === app(f, e)) <=> (app(f, e) === identity(H, -*))) by Cut(
+    // //   appInH,
+    // //   lastStep
+    // // )
+
+    // // have(thesis) by Tautology.from(lastStep, eq3)
+    // }
     /**
      * Theorem --- If `f` is a ring homomorphism between `G` and `H`, then `f(e_G) = e_H`.
      */
@@ -311,4 +379,5 @@ object RingTheory extends lisa.Main {
         // Conclude by idempotence
     }
     */
+    
 }
