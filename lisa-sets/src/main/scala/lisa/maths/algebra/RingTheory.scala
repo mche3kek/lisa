@@ -84,7 +84,6 @@ object RingTheory extends lisa.Main {
      * This justifies calling `e` <i>the</i> additive identity element.
      */
     val additiveIdentityUniqueness = Theorem(ring(G, +, *) |- ∃!(e, isNeutral(e, G, +))) {
-        assume(ring(G, +, *))
         have(thesis) by Tautology.from(ring.definition, identityUniqueness of (G -> G, * -> +))
     }
 
@@ -103,8 +102,8 @@ object RingTheory extends lisa.Main {
         (ring(G, +, *), x ∈ G) |- inverse(x, G, +) ∈ G
     ) {
         assume(ring(G, +, *))
-        val additiveGroup = have(group(G, +)) by Tautology.from(ring.definition)
-        have(thesis) by Tautology.from(inverseInGroup of (G -> G, * -> +), additiveGroup)
+        have(group(G, +)) by Tautology.from(ring.definition)
+        have(thesis) by Tautology.from(inverseInGroup of (G -> G, * -> +), lastStep)
     }
 
     /**
@@ -131,10 +130,10 @@ object RingTheory extends lisa.Main {
 
             // 2. e * f = e
             have((op(f, *, e) === e) /\ (op(e, *, f) === e)) by Cut(membership of (e -> e), neutrality of (e -> f, f -> e))
-            val secondEq = thenHave(e === op(e, *, f)) by Tautology
+            thenHave(e === op(e, *, f)) by Tautology
 
             // 3. Conclude by transitivity
-            have(thesis) by Tautology.from(firstEq, secondEq, equalityTransitivity of (x -> e, y -> op(e, *, f), z -> f))
+            have(thesis) by Tautology.from(firstEq, lastStep, equalityTransitivity of (x -> e, y -> op(e, *, f), z -> f))
         }
         have(thesis) by ExistenceAndUniqueness(isNeutral(e, G, *))(existence, uniqueness)    
     }
@@ -172,7 +171,6 @@ object RingTheory extends lisa.Main {
      * Theorem --- The identity element of an identity ring belongs to the ring.
      */
     val identityInRing = Theorem(identityRing(G, +, *) |- (multiplicativeIdentity(G, +, *) ∈ G)){
-        assume(identityRing(G, +, *))
         have(thesis) by Tautology.from(identityIsNeutral, isNeutral.definition of (e -> multiplicativeIdentity(G, +, *)))
     }
     
@@ -195,7 +193,6 @@ object RingTheory extends lisa.Main {
      * Theorem --- In a ring '(G, +, *)', we have 'y + x = z + x ==> y = z'.
      */
     val CancellationLaw = Theorem((ring(G, +, *), x ∈ G, y ∈ G, z ∈ G) |- (op(y, +, x) === op(z, +, x)) ==> (y === z)){
-        assume(ring(G, +, *))
         have(thesis) by Tautology.from(ring.definition, rightCancellation of (G -> G, * -> +))
     }
 
@@ -264,8 +261,8 @@ object RingTheory extends lisa.Main {
 
     val hasInverseUniqueness = Theorem((unitGroup(U, G, +, *), x ∈ U) |- ∃!(y, isInverse(y, x, U, opU))){
         assume(unitGroup(U, G, +, *))
-        val UisGroup = have(group(U, opU)) by Tautology.from(unitGroup.definition)
-        have(thesis) by Tautology.from(UisGroup, inverseUniqueness of (G -> U, * -> opU))
+        have(group(U, opU)) by Tautology.from(unitGroup.definition)
+        have(thesis) by Tautology.from(lastStep, inverseUniqueness of (G -> U, * -> opU))
     }
 
     /**
@@ -294,67 +291,86 @@ object RingTheory extends lisa.Main {
     val ringHomomorphism = DEF(f, G, +, *, H, -+, -*) --> ring(G, +, *) /\ ring(H, -+, -*) /\ functionFrom(f, G, H) /\ ∀(x, x ∈ G ==> ∀(y, y ∈ G ==> (app(f, op(x, *, y)) === op(app(f, x), -*, app(f, y))))) /\ ∀(x, x ∈ G ==> ∀(y, y ∈ G ==> (app(f, op(x, +, y)) === op(app(f, x), -+, app(f, y)))))
     
     /**
+   * Lemma --- Practical reformulation of the homomorphism definition.
+   */
+    val ringHomomorphismApplication = Lemma(
+        (ringHomomorphism(f, G, +, *, H, -+, -*), x ∈ G, y ∈ G) |- ((app(f, op(x, *, y)) === op(app(f, x), -*, app(f, y))) /\ (app(f, op(x, +, y)) === op(app(f, x), -+, app(f, y))))
+    ) {
+    assume(ringHomomorphism(f, G, +, *, H, -+, -*))
+    val init = have(∀(x, x ∈ G ==> ∀(y, y ∈ G ==> (app(f, op(x, *, y)) === op(app(f, x), -*, app(f, y))))) /\ ∀(x, x ∈ G ==> ∀(y, y ∈ G ==> (app(f, op(x, +, y)) === op(app(f, x), -+, app(f, y)))))) by Tautology.from(ringHomomorphism.definition)
+    thenHave(∀(x, x ∈ G ==> ∀(y, y ∈ G ==> (app(f, op(x, *, y)) === op(app(f, x), -*, app(f, y)))))) by Weakening
+    thenHave((x ∈ G ==> ∀(y, y ∈ G ==> (app(f, op(x, *, y)) === op(app(f, x), -*, app(f, y)))))) by InstantiateForall(x)
+    thenHave((x ∈ G) |- ∀(y, y ∈ G ==> (app(f, op(x, *, y)) === op(app(f, x), -*, app(f, y))))) by Restate
+    val eq1 = thenHave((x ∈ G) |- y ∈ G ==> (app(f, op(x, *, y)) === op(app(f, x), -*, app(f, y)))) by InstantiateForall(y)
+    
+    have(∀(x, x ∈ G ==> ∀(y, y ∈ G ==> (app(f, op(x, +, y)) === op(app(f, x), -+, app(f, y)))))) by Weakening(init)
+    thenHave((x ∈ G ==> ∀(y, y ∈ G ==> (app(f, op(x, +, y)) === op(app(f, x), -+, app(f, y)))))) by InstantiateForall(x)
+    thenHave((x ∈ G) |- ∀(y, y ∈ G ==> (app(f, op(x, +, y)) === op(app(f, x), -+, app(f, y))))) by Restate
+    thenHave((x ∈ G) |- y ∈ G ==> (app(f, op(x, +, y)) === op(app(f, x), -+, app(f, y)))) by InstantiateForall(y)
+
+    have(thesis) by Tautology.from(eq1, lastStep)
+    }
+
+
+    /**
      * Lemma --- If `f` is a ring homomorphism, then `f(x) ∈ H` for all `x ∈ G`.
      */
     private val imageInCodomain = Lemma((ringHomomorphism(f, G, +, *, H, -+, -*), z ∈ G) |- app(f, z) ∈ H ){ 
-        assume(ringHomomorphism(f, G, +, *, H, -+, -*))
-        val haveFunction = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- functionFrom(f, G, H)) by Tautology.from(ringHomomorphism.definition)
-        have(thesis) by Tautology.from(haveFunction, functionAppInCodomain of (x -> G, y -> H, t -> z)) 
+        have(ringHomomorphism(f, G, +, *, H, -+, -*) |- functionFrom(f, G, H)) by Tautology.from(ringHomomorphism.definition)
+        have(thesis) by Tautology.from(lastStep, functionAppInCodomain of (x -> G, y -> H, t -> z)) 
      }
         
     
     /**
-     * Theorem --- If `f` is a ring homomorphism between `G` and `H`, then `f(e_G) = e_H`.
+     * Theorem --- If `f` is a ring homomorphism between `G` and `H`, then `f(0_G) = 0_H`.
+     * Where 0_G and 0_H are the additive identity elements
      */
-   
-    // val ringHomomorphismMapsZeroToZero = Theorem((ringHomomorphism(f, G, +, *, H, -+, -*), ring(G, +, *)) |- (app(f, identity(G,+)) === identity(H, -+))){
-    //     assume(ringHomomorphism(f, G, +, *, H, -+, -*))
-    //     assume(ring(G, +, *))
+    val ringHomomorphismMapsZeroToZero = Theorem((ringHomomorphism(f, G, +, *, H, -+, -*)) |- (app(f, identity(G,+)) === identity(H, -+))){
+        assume(ringHomomorphism(f, G, +, *, H, -+, -*))
 
-    //     val e = identity(G, *)
+        val e = identity(G, +)
 
-    //     val groupG = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- group(G, +)) by Tautology.from(ringHomomorphism.definition, ring.definition)
-    //     val groupH = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- group(H, -+)) by Tautology.from(ringHomomorphism.definition, ring.definition of (G -> H, + -> -+))
+        val groupG = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- group(G, +)) by Tautology.from(ringHomomorphism.definition, ring.definition)
+        val groupH = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- group(H, -+)) by Tautology.from(ringHomomorphism.definition, ring.definition of (G -> H, this.+ -> -+, * -> -*))
 
-    //     val identityInG = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- e ∈ G) by Cut(groupG, identityInGroup)
-    //     val appInH = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- app(f, e) ∈ H) by Cut(identityInG, imageInCodomain of (z -> e))
+        val identityInG = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- e ∈ G) by Cut(groupG, identityInGroup of (* -> +))
+        val appInH = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- app(f, e) ∈ H) by Cut(identityInG, imageInCodomain of (z -> e))
 
-    //     // 0. e * e = e (to apply substitution)
-    //     have(group(G, +) |- op(e, +, e) === e) by Cut(
-    //        identityInGroup of (* -> +),
-    //        identityIdempotence of (* -> +, x -> e)
-    //     )
-    //     val eq0 = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- op(e, +, e) === e) by Cut(groupG, lastStep)
+        // 0. e * e = e (to apply substitution)
+        have(group(G, +) |- op(e, +, e) === e) by Tautology.from(
+           identityInGroup of (* -> +),
+           identityIdempotence of (* -> +, x -> e)
+        )
+        val eq0 = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- op(e, +, e) === e) by Cut(groupG, lastStep)
 
-    // // // 1. f(e * e) = f(e)
-    // // have(app(f, e) === app(f, e)) by RightRefl
-    // // thenHave(op(e, *, e) === e |- app(f, op(e, *, e)) === app(f, e)) by RightSubstEq(
-    // //   List((op(e, *, e), e)),
-    // //   lambda(z, app(f, z) === app(f, e))
-    // // )
-    // // val eq1 = have(homomorphism(f, G, *, H, -*) |- app(f, op(e, *, e)) === app(f, e)) by Cut(eq0, lastStep)
+        // 1. f(e * e) = f(e)
+        have(app(f, e) === app(f, e)) by Restate
+        thenHave(op(e, +, e) === e |- app(f, op(e, +, e)) === app(f, e)) by RightSubstEq.withParametersSimple(
+            List((op(e, +, e), e)),
+            lambda(z, app(f, z) === app(f, e))
+        )
+        have(ringHomomorphism(f, G, +, *, H, -+, -*) |- app(f, op(e, +, e)) === app(f, e)) by Cut(eq0, lastStep)
+        val eq1 = thenHave(ringHomomorphism(f, G, +, *, H, -+, -*) |- app(f, e) === app(f, op(e, +, e))) by Restate
+        // 2. f(e * e) = f(e) ** f(e)
+        val eq2 = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- app(f, op(e, +, e)) === op(app(f, e), -+, app(f, e))) by Tautology.from(
+            identityInG,
+            ringHomomorphismApplication of (x -> e, y -> e)
+        )
 
-    // // // 2. f(e * e) = f(e) ** f(e)
-    // // val eq2 = have(homomorphism(f, G, *, H, -*) |- app(f, op(e, *, e)) === op(app(f, e), -*, app(f, e))) by Cut(
-    // //   identityInG,
-    // //   homomorphismApplication of (x -> e, y -> e)
-    // // )
+        // 3. f(e) ** f(e) = f(e)
+        val eq3 = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- op(app(f, e), -+, app(f, e)) === app(f, e)) by Tautology.from(eq1, eq2, equalityTransitivity of (x -> app(f, e), y -> app(f, op(e, +, e)), z -> op(app(f, e), -+, app(f, e))))
 
-    // // // 3. f(e) ** f(e) = f(e)
-    // // val eq3 = have(homomorphism(f, G, *, H, -*) |- op(app(f, e), -*, app(f, e)) === app(f, e)) by Equalities(eq1, eq2)
-
-    // // // Conclude by idempotence
-    // // have((homomorphism(f, G, *, H, -*), app(f, e) ∈ H) |- (op(app(f, e), -*, app(f, e)) === app(f, e)) <=> (app(f, e) === identity(H, -*))) by Cut(
-    // //   groupH,
-    // //   identityIdempotence of (x -> app(f, e), G -> H, * -> -*)
-    // // )
-    // // have(homomorphism(f, G, *, H, -*) |- (op(app(f, e), -*, app(f, e)) === app(f, e)) <=> (app(f, e) === identity(H, -*))) by Cut(
-    // //   appInH,
-    // //   lastStep
-    // // )
-
-    // // have(thesis) by Tautology.from(lastStep, eq3)
-    // }
+        // Conclude by idempotence
+        have((ringHomomorphism(f, G, +, *, H, -+, -*), app(f, e) ∈ H) |- (op(app(f, e), -+, app(f, e)) === app(f, e)) <=> (app(f, e) === identity(H, -+))) by Cut(
+            groupH,
+            identityIdempotence of (x -> app(f, e), G -> H, * -> -+)
+        )
+        have(ringHomomorphism(f, G, +, *, H, -+, -*) |- (op(app(f, e), -+, app(f, e)) === app(f, e)) <=> (app(f, e) === identity(H, -+))) by Cut(
+            appInH,
+            lastStep
+        )
+        have(thesis) by Tautology.from(lastStep, eq3)
+    }
     /**
      * Theorem --- If `f` is a ring homomorphism between `G` and `H`, then `f(e_G) = e_H`.
      */
