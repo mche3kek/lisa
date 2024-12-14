@@ -214,7 +214,7 @@ object GroupTheory extends lisa.Main {
     (group(G, *), x ∈ G, y ∈ G, z ∈ G) |- op(op(x, *, y), *, z) === op(x, *, op(y, *, z))
   ) {
     assume(group(G, *))
-
+    
     have(∀(x, x ∈ G ==> ∀(y, y ∈ G ==> ∀(z, z ∈ G ==> (op(op(x, *, y), *, z) === op(x, *, op(y, *, z))))))) by Tautology.from(
       group.definition,
       associativityAxiom.definition

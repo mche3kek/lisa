@@ -9,6 +9,7 @@ import lisa.automation.kernel.CommonTactics.Definition
 import lisa.automation.kernel.CommonTactics.ExistenceAndUniqueness
 import lisa.kernel.fol.FOL.VariableLabel
 import lisa.automation.settheory.SetTheoryTactics.TheConditional
+import lisa.fol.Common
 
 object RingTheory extends lisa.Main {
     // Operations
@@ -24,7 +25,7 @@ object RingTheory extends lisa.Main {
 
     // Sets in the ring 
     private val G, H, U = variable
-
+    
     /**
      * Short-hand alias for `x operator y`.
      * In ring context we have x*y or x+y
@@ -59,11 +60,64 @@ object RingTheory extends lisa.Main {
      * Ring --- A ring (G, +, *) is a set along with a law of composition `*` and '+', satisfying [[abelianGroup]], [[closure]],
      * [[associativityAxiom]], [[identityExistence]] and [[distributivityAxiom]].
      */
-    val ring = DEF(G, +, *) --> group(G, +) /\ abelianGroup(G, +) /\ closure(G, *) /\ associativityAxiom(G, *) /\ distributivityAxiom(G, *, +)
+    val ring = DEF(G, +, *) --> group(G, +) /\ abelianGroup(G, +) /\ binaryOperation(G, *) /\ closure(G, *) /\ associativityAxiom(G, *) /\ distributivityAxiom(G, +, *)
     
+    /**
+     * Ring operation is functional -- The ring operations `* and +` are functional.
+     */
+    val ringOperationIsFunctional = Lemma(ring(G, +, *) |- (functional(*) /\ functional(+))) {
+        assume(ring(G, +, *))
+        val eq1 = have(ring(G, +, *) |- functional(+)) by Tautology.from(ring.definition, groupOperationIsFunctional of (* -> +))
+        val eq2 = have(ring(G, +, *) |- functional(*)) by Tautology.from(ring.definition, binaryOperation.definition, functionFromImpliesFunctional of (f -> *, x -> cartesianProduct(G, G), y -> G))
+        have(thesis) by Tautology.from(eq1, eq2)
+    }
+
+    /**
+   * Group operation domain -- The domain of a group law is the cartesian product of the group `G` with itself.
+   *
+   * Follows directly from the definition of `binaryRelation`.
+   */
+  val ringOperationDomain = Lemma(ring(G, +, *) |- ( (relationDomain(+) === cartesianProduct(G, G)) /\ (relationDomain(*) === cartesianProduct(G, G)))) {
+    assume(ring(G, +, *))
+    val eq1 = have(ring(G, +, *) |- relationDomain(+) === cartesianProduct(G, G)) by Tautology.from(ring.definition,groupOperationDomain of (* -> +))
+    val eq2 = have(ring(G, +, *) |- relationDomain(*) === cartesianProduct(G, G)) by Tautology.from(ring.definition, binaryOperation.definition, functionFromImpliesDomainEq of (f -> *, x -> cartesianProduct(G, G), y -> G))
+    have(thesis) by Tautology.from(eq1, eq2)
+  }
+
+    /**
+     * Lemma --- For elements `x, y, z` in a ring `(G, +, *)`, we have `x(y+z) = xy + xz and (x+y)z = xz + yz`.
+     *
+     * Practical reformulation of the [[distributivityAxiom]].
+     */
+    val distributivity = Lemma((ring(G, +, *), x ∈ G, y ∈ G, z ∈ G) |- ((op(x,*,op(y,+,z)) === op(op(x,*,y),+,op(x,*,z))) /\ (op(op(x,+,y),*,z) === op(op(x,*,z),+,op(y,*,z))))) {
+        assume(ring(G, +, *))
+        have(∀(x, x ∈ G ==> ∀(y, y ∈ G ==> ∀(z, z ∈ G ==> ( (op(x,*,op(y,+,z)) === op(op(x,*,y),+,op(x,*,z))) /\ (op(op(x,+,y),*,z) === op(op(x,*,z),+,op(y,*,z)))))))) by Tautology.from(ring.definition, distributivityAxiom.definition)
+        thenHave(x ∈ G ==> ∀(y, y ∈ G ==> ∀(z, z ∈ G ==> ( (op(x,*,op(y,+,z)) === op(op(x,*,y),+,op(x,*,z))) /\ (op(op(x,+,y),*,z) === op(op(x,*,z),+,op(y,*,z))))))) by InstantiateForall(x)
+        thenHave(x ∈ G |- ∀(y, y ∈ G ==> ∀(z, z ∈ G ==> ( (op(x,*,op(y,+,z)) === op(op(x,*,y),+,op(x,*,z))) /\ (op(op(x,+,y),*,z) === op(op(x,*,z),+,op(y,*,z))))))) by Restate
+        thenHave(x ∈ G |- y ∈ G ==> ∀(z, z ∈ G ==> ( (op(x,*,op(y,+,z)) === op(op(x,*,y),+,op(x,*,z))) /\ (op(op(x,+,y),*,z) === op(op(x,*,z),+,op(y,*,z)))))) by InstantiateForall(y)
+        thenHave((x ∈ G, y ∈ G) |- ∀(z, z ∈ G ==> ( (op(x,*,op(y,+,z)) === op(op(x,*,y),+,op(x,*,z))) /\ (op(op(x,+,y),*,z) === op(op(x,*,z),+,op(y,*,z)))))) by Restate
+        thenHave((x ∈ G, y ∈ G) |- z ∈ G ==> ( (op(x,*,op(y,+,z)) === op(op(x,*,y),+,op(x,*,z))) /\ (op(op(x,+,y),*,z) === op(op(x,*,z),+,op(y,*,z))))) by InstantiateForall(z)
+        thenHave((x ∈ G, y ∈ G, z ∈ G) |- ( (op(x,*,op(y,+,z)) === op(op(x,*,y),+,op(x,*,z))) /\ (op(op(x,+,y),*,z) === op(op(x,*,z),+,op(y,*,z))))) by Restate
+    }
     // The neutral element of the binary operator '+', denoted as '0', in the structure '(G, +, *)' is an absorbing element, 
     // i.e. '0 * x = x * 0 = 0' for all 'x' in 'G'.
-    val absorbingElementZero = (ring(G,+,*) /\ isNeutral(e, G, +)) ==> ∀(x, x ∈ G ==> (op(x, *, e) === e) /\ (op(e, *, x) === e))
+    /**
+    val absorbingElementZero = Lemma( (ring(G, +, *), x ∈ G) |- (op(x, *, identity(G,+)) === identity(G,+)) /\ (op(identity(G,+), *, x) === identity(G,+))){
+        assume(ring(G, +, *))
+        assume(x ∈ G)
+        val e = identity(G, +)
+        val groupG = have(group(G, +)) by Tautology.from(ring.definition)
+        have(e ∈ G) by Tautology.from(lastStep, identityInGroup of (* -> +))
+        
+        have((op(x,*,op(x,+,e)) === op(op(x,*,x),+,op(x,*,e))) /\ (op(op(x,+,x),*,e) === op(op(x,*,e),+,op(x,*,e)))) by Tautology.from(lastStep, distributivity of (x -> x, y -> x, z -> e))
+        val eq1 = thenHave(op(x,*,op(x,+,e)) === op(op(x,*,x),+,op(x,*,e))) by Weakening
+        have(op(x,+,e) === x) by Tautology.from(groupG, identityNeutrality of (* -> +))
+        have(op(x, *, op(x,+,e)) === op(x, *, x)) by Tautology.from(lastStep, test, functional.definition)
+        have(op(x,*,x) === op(op(x,*,x),+,op(x,*,e))) by Tautology.from(lastStep, eq1)
+
+        //thenHave()
+    }
+    */        
 
     /**
      * Ring with identity --- A ring with identity (G, +, *) is a ring containing an identity element under '*', satisfying [[identityExistence]].
@@ -98,9 +152,7 @@ object RingTheory extends lisa.Main {
     /**
      * Lemma --- The additive inverse element `y` of `x` is in `G`.
      */
-    val additiveInverseInRing = Lemma(
-        (ring(G, +, *), x ∈ G) |- inverse(x, G, +) ∈ G
-    ) {
+    val additiveInverseInRing = Lemma((ring(G, +, *), x ∈ G) |- inverse(x, G, +) ∈ G){
         assume(ring(G, +, *))
         have(group(G, +)) by Tautology.from(ring.definition)
         have(thesis) by Tautology.from(inverseInGroup of (G -> G, * -> +), lastStep)
@@ -152,11 +204,11 @@ object RingTheory extends lisa.Main {
     }
 
     /**
-     * Lemma --- For any element `x` in a group `(G, *)`, we have `x * e = e * x = x`.
+     * Lemma --- For any element `x` in a ring `(G, +, *)`, we have `x * e = e * x = x`.
      *
      * Practical reformulation of [[identityIsNeutral]].
      */
-    val identityNeutrality = Lemma(
+    val multiplicativeIdentityNeutrality = Lemma(
         (identityRing(G, +, *), x ∈ G) |- (op(multiplicativeIdentity(G, +, *), *, x) === x) /\ (op(x, *, multiplicativeIdentity(G, +, *)) === x)
     ) {
         have(identityRing(G, +, *) |- ∀(x, (x ∈ G) ==> ((op(multiplicativeIdentity(G, +, *), *, x) === x) /\ (op(x, *, multiplicativeIdentity(G, +, *)) === x)))) by Tautology.from(
@@ -291,8 +343,8 @@ object RingTheory extends lisa.Main {
     val ringHomomorphism = DEF(f, G, +, *, H, -+, -*) --> ring(G, +, *) /\ ring(H, -+, -*) /\ functionFrom(f, G, H) /\ ∀(x, x ∈ G ==> ∀(y, y ∈ G ==> (app(f, op(x, *, y)) === op(app(f, x), -*, app(f, y))))) /\ ∀(x, x ∈ G ==> ∀(y, y ∈ G ==> (app(f, op(x, +, y)) === op(app(f, x), -+, app(f, y)))))
     
     /**
-   * Lemma --- Practical reformulation of the homomorphism definition.
-   */
+     * Lemma --- Practical reformulation of the homomorphism definition.
+     */
     val ringHomomorphismApplication = Lemma(
         (ringHomomorphism(f, G, +, *, H, -+, -*), x ∈ G, y ∈ G) |- ((app(f, op(x, *, y)) === op(app(f, x), -*, app(f, y))) /\ (app(f, op(x, +, y)) === op(app(f, x), -+, app(f, y))))
     ) {
