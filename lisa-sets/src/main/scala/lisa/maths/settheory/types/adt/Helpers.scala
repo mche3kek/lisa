@@ -407,6 +407,10 @@ private [adt] object ADTHelperTheorems {
     have(thesis) by Tautology
   }
 
+  val test = Lemma((p1 ==> p2, p2 ==> p3) |- p1 ==> p3){
+    have(thesis) by Tautology
+  }
+
   /**
    * Lemma --- Modus ponens for equivalence.
    */
