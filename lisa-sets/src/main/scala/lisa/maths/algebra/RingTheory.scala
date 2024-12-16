@@ -33,10 +33,10 @@ object RingTheory extends lisa.Main {
     inline def op(x: Term, operator : Term, y: Term) = app(operator, pair(x, y))
     
     /**
-     * Definition of the substraction in a ring.
-     * for all 'x, y' in 'G', 'x - y = x + (-y)', where '-y' is the additive inverse of 'y' in 'G'
+     * Definition of the -x in a ring.
+     * '-x' is the additive inverse of 'x' in 'G'
      */
-    inline def substract(G: Term, x: Term, operatorMinus: Term, y: Term, operatorPlus: Term) = app(operatorPlus, pair(x, inverse(y, G, operatorPlus)))
+    inline def minus(x: Term) = inverse(x, G, +)
     
     //
     // 1. Basic definitions and results
@@ -63,6 +63,17 @@ object RingTheory extends lisa.Main {
     val ring = DEF(G, +, *) --> group(G, +) /\ abelianGroup(G, +) /\ binaryOperation(G, *) /\ closure(G, *) /\ associativityAxiom(G, *) /\ distributivityAxiom(G, +, *)
     
     /**
+     * Lemma --- If `x, y ∈ G`, then `x * y ∈ G`.
+     */
+    val ringIsClosedByProduct = Lemma( (ring(G, +, *), x ∈ G, y ∈ G) |- op(x, *, y) ∈ G) {
+        assume(ring(G, +, *))
+        have(∀(x, ∀(y, (x ∈ G /\ y ∈ G) ==> (op(x, *, y) ∈ G)))) by Tautology.from(ring.definition, closure.definition)
+        thenHave(∀(y, (x ∈ G /\ y ∈ G) ==> (op(x, *, y) ∈ G))) by InstantiateForall(x)
+        thenHave((x ∈ G /\ y ∈ G) ==> (op(x, *, y) ∈ G)) by InstantiateForall(y)
+        thenHave(thesis) by Restate
+    }
+
+    /*
      * Ring operation is functional -- The ring operations `* and +` are functional.
      */
     val ringOperationIsFunctional = Lemma(ring(G, +, *) |- (functional(*) /\ functional(+))) {
@@ -99,39 +110,65 @@ object RingTheory extends lisa.Main {
         thenHave((x ∈ G, y ∈ G) |- z ∈ G ==> ( (op(x,*,op(y,+,z)) === op(op(x,*,y),+,op(x,*,z))) /\ (op(op(x,+,y),*,z) === op(op(x,*,z),+,op(y,*,z))))) by InstantiateForall(z)
         thenHave((x ∈ G, y ∈ G, z ∈ G) |- ( (op(x,*,op(y,+,z)) === op(op(x,*,y),+,op(x,*,z))) /\ (op(op(x,+,y),*,z) === op(op(x,*,z),+,op(y,*,z))))) by Restate
     }
-    // The neutral element of the binary operator '+', denoted as '0', in the structure '(G, +, *)' is an absorbing element, 
-    // i.e. '0 * x = x * 0 = 0' for all 'x' in 'G'.
 
-    val absorbingElementZero = Lemma( (ring(G, +, *), x ∈ G) |- (op(x, *, identity(G,+)) === identity(G,+)) /\ (op(identity(G,+), *, x) === identity(G,+))){
-        sorry
-        /**
+    /**
+     * Theorem --- The neutral element of the binary operator '+', denoted as '0', in the structure '(G, +, *)' is an absorbing element, 
+     * i.e. '0 * x = x * 0 = 0' for all 'x' in 'G'.
+     */
+    val absorbingElementZero = Theorem( (ring(G, +, *), x ∈ G) |- (op(x, *, identity(G,+)) === identity(G,+)) /\ (op(identity(G,+), *, x) === identity(G,+))){
         assume(ring(G, +, *))
         assume(x ∈ G)
+        
         val e = identity(G, +)
         val groupG = have(group(G, +)) by Tautology.from(ring.definition)
-        have(e ∈ G) by Tautology.from(lastStep, identityInGroup of (* -> +))
+        val eInGroup = have(e ∈ G) by Tautology.from(lastStep, identityInGroup of (* -> +))
+        val x0inG = have(op(x,*,e) ∈ G) by Tautology.from(eInGroup, ringIsClosedByProduct of (y -> e))
+        val zeroXinG = have(op(e,*,x) ∈ G) by Tautology.from(eInGroup, ringIsClosedByProduct of (x -> e, y -> x)) 
+        val sumIDisID = have(op(e,+,e) === e) by Tautology.from(groupG, eInGroup, identityNeutrality of (* -> +, x -> e))
+
+        // 1. x(0 + 0) = x0 + x0 <-> x0 = x0 + x0
+        have((op(x,*,op(e,+,e)) === op(op(x,*,e),+,op(x,*,e))) /\ (op(op(x,+,e),*,e) === op(op(x,*,e),+,op(e,*,e)))) by Tautology.from(eInGroup, distributivity of (x -> x, y -> e, z -> e))
+        val eq1 = thenHave(op(x,*,op(e,+,e)) === op(op(x,*,e),+,op(x,*,e))) by Weakening
+
+        // this line of the proof doesn't work
+        val TODO1 = have((op(e,+,e) === e) |- (op(x, *, op(e,+,e)) === op(x, *, e))) subproof {
+            sorry
+        }
+        //thenHave( (op(e,+,e) === e) |- (op(x, *, op(e,+,e)) === op(x, *, e))) by RightSubstEq.withParametersSimple(
+          //   List((op(e,+,e), e)),
+            // lambda(z, op(x, *, op(e,+,e)) === op(x, *, z))
+        //) 
+        have(op(x, *, e) === op(x, *, op(e,+,e))) by Tautology.from(sumIDisID, TODO1)
+        // 2. x0 = x0 + x0
+        val final_eq1 = have(op(x,*,e) === op(op(x,*,e),+,op(x,*,e))) by Tautology.from(lastStep, eq1, equalityTransitivity of (x -> op(x,*,e), y -> op(x,*,op(e,+,e)), z -> op(op(x,*,e),+,op(x,*,e))))
+
+        // 3. x0 + 0 = x0 + x0, so by leftCancellation 0 = x0
+        have(op(op(x,*,e), +, e) === op(x, *, e)) by Tautology.from(groupG, x0inG, identityNeutrality of (* -> +, x -> op(x,*,e)))
+        have(op(op(x,*,e),+,e) === op(op(x,*,e),+,op(x,*,e))) by Tautology.from(lastStep, final_eq1, equalityTransitivity of (x -> op(op(x,*,e),+,e), y -> op(x,*,e), z -> op(op(x,*,e),+,op(x,*,e))))
         
-        // 1. x(x + 0) = xx + x0 <-> xx = xx + x0
-        have((op(x,*,op(x,+,e)) === op(op(x,*,x),+,op(x,*,e))) /\ (op(op(x,+,x),*,e) === op(op(x,*,e),+,op(x,*,e)))) by Tautology.from(lastStep, distributivity of (x -> x, y -> x, z -> e))
-        val eq1 = thenHave(op(x,*,op(x,+,e)) === op(op(x,*,x),+,op(x,*,e))) by Weakening
-        have(op(x,+,e) === x) by Tautology.from(groupG, identityNeutrality of (* -> +))
+        val firstEquality = have(e === op(x,*,e)) by Tautology.from(lastStep, x0inG, eInGroup, groupG, leftCancellation of (* -> +, x -> op(x,*,e), y -> e, z -> op(x,*,e)))
+            
+        // 4. We have to show the other direction : 0x = 0 : (0 + 0)x = 0x + 0x        
+        have((op(e,*,op(e,+,x)) === op(op(e,*,e),+,op(e,*,x))) /\ (op(op(e,+,e),*,x) === op(op(e,*,x),+,op(e,*,x)))) by Tautology.from(eInGroup, distributivity of (x -> e, y -> e, z -> x))
+        val eq2 = thenHave((op(op(e,+,e), *, x) === op(op(e,*,x),+,op(e,*,x)))) by Weakening
         
         // this line of the proof doesn't work
-        thenHave( (op(x,+,e) === x) |- (op(x, *, op(x,+,e)) === op(x, *, x))) by RightSubstEq.withParametersSimple(
-           List((op(x,+,e), x)),
-           lambda(z, op(x, *, z) === op(x, *, x))
-        )//(lastStep)
+        val TODO2 = have((op(e,+,e) === e) |- (op(op(e,+,e), *, x) === op(e, *, x))) subproof {
+            sorry
+        }
+        // have( (op(e,+,e) === e) |- (op(op(e,+,e), *, x) === op(e, *, x))) by RightSubstEq.withParametersSimple(
+        //     List((op(e,+,e), e)),
+        //     lambda(z, op(x, *, z) === op(x, *, e))
+        // )(sumIDisID) 
+        have(op(e, *, x) === op(op(e,+,e), *, x)) by Tautology.from(TODO2, sumIDisID)
+        val final_eq2 = have(op(e,*,x) === op(op(e,*,x),+,op(e,*,x))) by Tautology.from(eq2, lastStep, equalityTransitivity of (x -> op(e,*,x), y -> op(op(e,+,e), *, x), z -> op(op(e,*,x),+,op(e,*,x))))
 
-        thenHave(op(x, *, x) === op(x, *, op(x,+,e))) by Restate
+        have(op(op(e,*,x), +, e) === op(e, *, x)) by Tautology.from(groupG, zeroXinG, identityNeutrality of (* -> +, x -> op(e,*,x)))
+        have(op(op(e,*,x),+,e) === op(op(e,*,x),+,op(e,*,x))) by Tautology.from(lastStep, final_eq2, equalityTransitivity of (x -> op(op(e,*,x),+,e), y -> op(e, *, x), z -> op(op(e,*,x),+,op(e,*,x))))
+        val secondEquality = have(e === op(e,*,x)) by Tautology.from(lastStep, groupG, zeroXinG, eInGroup, leftCancellation of (* -> +, x -> op(e,*,x), y -> e, z -> op(e,*,x)))
         
-        have(op(x,*,x) === op(op(x,*,x),+,op(x,*,e))) by Tautology.from(lastStep, eq1, equalityTransitivity of (x -> op(x,*,x), y -> op(x,*,op(x,+,e)), z -> op(op(x,*,x),+,op(x,*,e))))
-
-        // 2. (xx - xx) = (xx + x0 - xx) <-> 0 = x0
-
-        // 3. We have to show the other direction : 0x = 0
-
         // 4. We group the 2 results together with Tautology
-        */
+        have(thesis) by Tautology.from(firstEquality, secondEquality)
     }
             
 
