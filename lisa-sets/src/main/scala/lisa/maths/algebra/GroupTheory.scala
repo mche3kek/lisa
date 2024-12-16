@@ -505,7 +505,7 @@ object GroupTheory extends lisa.Main {
   /**
    * Lemma --- The inverse of `x` is an inverse of `x` (by definition).
    */
-  private val inverseIsInverse = Lemma(
+  val inverseIsInverse = Lemma(
     (group(G, *), x ∈ G) |- isInverse(inverse(x, G, *), x, G, *)
   ) {
     sorry
