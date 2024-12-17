@@ -159,6 +159,7 @@ object RingTheory extends lisa.Main {
         // 4. We group the 2 results together with Tautology
         have(thesis) by Tautology.from(firstEquality, secondEquality)
     }
+    
     /**
      * Theorem --- If 'x' is in 'G', then '-(-x) = x'.
      * Where -x denotes the inverse of x under the operation '+'   
@@ -180,6 +181,20 @@ object RingTheory extends lisa.Main {
      * i.e. it satisfies [[commutativityAxiom]].
      */
     val commutativeRing = DEF(G, +, *) --> ring(G, +, *) /\ commutativityAxiom(G, *)
+
+    /**
+     * Lemma --- For elements `x, y` in an commutative ring `(G, +, *)`, we have `xy = yx`.
+     *
+     * Practical reformulation of [[commutativityAxiom]] but for rings.
+     */
+    val ringCommutativity = Lemma((commutativeRing(G, +, *), x ∈ G, y ∈ G) |- op(x, *, y) === op(y, *, x)) {
+        assume(commutativeRing(G, +, *))
+        have(∀(x, x ∈ G ==> ∀(y, y ∈ G ==> (op(x, *, y) === op(y, *, x))))) by Tautology.from(commutativeRing.definition, commutativityAxiom.definition)
+        thenHave(x ∈ G ==> ∀(y, y ∈ G ==> (op(x, *, y) === op(y, *, x)))) by InstantiateForall(x)
+        thenHave(x ∈ G |- ∀(y, y ∈ G ==> (op(x, *, y) === op(y, *, x)))) by Restate
+        thenHave(x ∈ G |- (y ∈ G ==> (op(x, *, y) === op(y, *, x)))) by InstantiateForall(y)
+        thenHave((x ∈ G, y ∈ G) |- ((op(x, *, y) === op(y, *, x)))) by Restate
+    }
 
     /**
      * No Zero Divisors --- A ring has no zero divisors if 'x * y = 0 ==> x = 0 or y = 0' for all 'x, y' in 'G'.
@@ -239,10 +254,12 @@ object RingTheory extends lisa.Main {
     }
 
     /**
-     * Lemma --- In a ring, we have '-(xy) = x(-y)'. 
-     * It's a consequence of distributivity
+     * Theorem --- In a ring, we have '-(xy) = x(-y)' and '-(xy) = (-x)y'. 
+     * Where '-x' denotes the additive inverse of 'x'.
+     *
+     * It's a consequence of distributivity.
      */
-    val negationDistribution = Lemma((ring(G, +, *), x ∈ G, y ∈ G) |- (minus(op(x,*,y)) === op(x, *, minus(y)))){
+    val negationDistribution = Theorem((ring(G, +, *), x ∈ G, y ∈ G) |- ((minus(op(x,*,y)) === op(x, *, minus(y))) /\ (minus(op(x,*,y)) === op(minus(x), *, y)))){
         assume(ring(G, +, *))
         assume(x ∈ G)
         assume(y ∈ G)
@@ -250,35 +267,115 @@ object RingTheory extends lisa.Main {
         val prod1InG = have(op(x,*,y) ∈ G) by Tautology.from(ringIsClosedByProduct)
         val groupG = have(group(G, +)) by Tautology.from(ring.definition)
         val abelianGroupG = have(abelianGroup(G, +)) by Tautology.from(ring.definition)
-        val invInG = have(minus(y) ∈ G) by Tautology.from(additiveInverseInRing of (x -> y))
-        val prod2InG = have(op(x,*,minus(y)) ∈ G) by Tautology.from(lastStep, ringIsClosedByProduct of (y -> minus(y)))
-        val eq = have(op(y, +, minus(y)) === identity(G, +)) by Tautology.from(lastStep, groupG, inverseCancellation of (* -> +, x -> y))
-        have((op(y, +, minus(y)) === identity(G, +)) |- (op(x, *, op(y, +, minus(y))) === op(x, *, identity(G, +)))) by Congruence
-        
-        // x(y +(-y)) = x0
-        val eq1 = have(op(x, *, op(y, +, minus(y))) === op(x, *, identity(G, +))) by Tautology.from(lastStep, eq)
-        have(op(x, *, identity(G, +)) === identity(G, +)) by Tautology.from(absorbingElementZero)
-        
-        // x(y +(-y)) = 0
-        val eq2 = have(op(x, *, op(y, +, minus(y))) === identity(G, +)) by Tautology.from(lastStep, eq1, equalityTransitivity of (x -> op(x, *, op(y, +, minus(y))), y -> op(x, *, identity(G, +)), z -> identity(G, +)))
-        
-        // x(y + (-y)) = xy + x(-y)
-        have(op(x, *, op(y, +, minus(y))) === (op(op(x,*,y),+,op(x,*,minus(y))))) by Tautology.from(invInG, distributivity of (z -> minus(y)))
-        
-        // xy + x(-y) = 0
-        val eq3 = have((op(op(x,*,y), +, op(x,*,minus(y)))) === identity(G, +)) by Tautology.from(lastStep, eq2, equalityTransitivity of (x -> (op(op(x,*,y),+,op(x,*,minus(y)))), y -> op(x, *, op(y, +, minus(y))), z -> identity(G, +)))
-        have(op(op(x,*,minus(y)), +, op(x,*,y)) === op(op(x,*,y), +, op(x,*,minus(y)))) by Tautology.from(abelianGroupG, prod1InG, prod2InG, commutativity  of (* -> +, x -> op(x,*,minus(y)), y -> op(x,*,y)))
-        have(op(op(x,*,minus(y)), +, op(x,*,y)) === identity(G, +)) by Tautology.from(lastStep, eq3, equalityTransitivity of (x -> op(op(x,*,minus(y)), +, op(x,*,y)), y -> op(op(x,*,y), +, op(x,*,minus(y))), z -> identity(G, +)))
-        
-        // xy = -(x(-y))
-        val eq4 = have(op(x,*,y) === minus(op(x,*,minus(y)))) by Tautology.from(prod1InG, prod2InG, lastStep, groupG, inverseTest of (* -> +, x -> op(x,*,minus(y)), y -> op(x,*,y)))
-        have((op(x,*,y) === minus(op(x,*,minus(y)))) |- (minus(op(x,*,y)) === minus(minus(op(x,*,minus(y)))))) by Congruence
-        val eq5 = have(minus(op(x,*,y)) === minus(minus(op(x,*,minus(y))))) by Tautology.from(lastStep, eq4)
-        have(minus(minus(op(x,*,minus(y)))) === op(x,*,minus(y))) by Tautology.from(lastStep, groupG, inverseIsInvolutive of (* -> +, x -> op(x,*,minus(y))), prod2InG)
-        
-        // -(xy) = -(-(x(-y))) = x(-y)
-        have(thesis) by Tautology.from(lastStep, eq5, equalityTransitivity of (x -> minus(op(x,*,y)), y -> minus(minus(op(x,*,minus(y)))), z -> op(x,*,minus(y))))
+
+        val firstProof = have((ring(G, +, *), x ∈ G, y ∈ G) |- (minus(op(x,*,y)) === op(x, *, minus(y)))) subproof {
+            val invInG = have(minus(y) ∈ G) by Tautology.from(additiveInverseInRing of (x -> y))
+            val prod2InG = have(op(x,*,minus(y)) ∈ G) by Tautology.from(lastStep, ringIsClosedByProduct of (y -> minus(y)))
+            
+            val eq = have(op(y, +, minus(y)) === identity(G, +)) by Tautology.from(groupG, inverseCancellation of (* -> +, x -> y))
+            have((op(y, +, minus(y)) === identity(G, +)) |- (op(x, *, op(y, +, minus(y))) === op(x, *, identity(G, +)))) by Congruence
+            
+            // x(y +(-y)) = x0
+            val eq1 = have(op(x, *, op(y, +, minus(y))) === op(x, *, identity(G, +))) by Tautology.from(lastStep, eq)
+            have(op(x, *, identity(G, +)) === identity(G, +)) by Tautology.from(absorbingElementZero)
+            
+            // x(y +(-y)) = 0
+            val eq2 = have(op(x, *, op(y, +, minus(y))) === identity(G, +)) by Tautology.from(lastStep, eq1, equalityTransitivity of (x -> op(x, *, op(y, +, minus(y))), y -> op(x, *, identity(G, +)), z -> identity(G, +)))
+            
+            // x(y + (-y)) = xy + x(-y)
+            have(op(x, *, op(y, +, minus(y))) === (op(op(x,*,y),+,op(x,*,minus(y))))) by Tautology.from(invInG, distributivity of (z -> minus(y)))
+            
+            // x(-y) + xy = 0
+            val eq3 = have((op(op(x,*,y), +, op(x,*,minus(y)))) === identity(G, +)) by Tautology.from(lastStep, eq2, equalityTransitivity of (x -> (op(op(x,*,y),+,op(x,*,minus(y)))), y -> op(x, *, op(y, +, minus(y))), z -> identity(G, +)))
+            have(op(op(x,*,minus(y)), +, op(x,*,y)) === op(op(x,*,y), +, op(x,*,minus(y)))) by Tautology.from(abelianGroupG, prod1InG, prod2InG, commutativity  of (* -> +, x -> op(x,*,minus(y)), y -> op(x,*,y)))
+            have(op(op(x,*,minus(y)), +, op(x,*,y)) === identity(G, +)) by Tautology.from(lastStep, eq3, equalityTransitivity of (x -> op(op(x,*,minus(y)), +, op(x,*,y)), y -> op(op(x,*,y), +, op(x,*,minus(y))), z -> identity(G, +)))
+            
+            // xy = -(x(-y))
+            val eq4 = have(op(x,*,y) === minus(op(x,*,minus(y)))) by Tautology.from(prod1InG, prod2InG, lastStep, groupG, inverseTest of (* -> +, x -> op(x,*,minus(y)), y -> op(x,*,y)))
+            have((op(x,*,y) === minus(op(x,*,minus(y)))) |- (minus(op(x,*,y)) === minus(minus(op(x,*,minus(y)))))) by Congruence
+            val eq5 = have(minus(op(x,*,y)) === minus(minus(op(x,*,minus(y))))) by Tautology.from(lastStep, eq4)
+            have(minus(minus(op(x,*,minus(y)))) === op(x,*,minus(y))) by Tautology.from(lastStep, groupG, inverseIsInvolutive of (* -> +, x -> op(x,*,minus(y))), prod2InG)
+            
+            // -(xy) = -(-(x(-y))) = x(-y)
+            have(thesis) by Tautology.from(lastStep, eq5, equalityTransitivity of (x -> minus(op(x,*,y)), y -> minus(minus(op(x,*,minus(y)))), z -> op(x,*,minus(y))))
+        }
+
+        val secondProof = have((ring(G, +, *), x ∈ G, y ∈ G) |- (minus(op(x,*,y)) === op(minus(x), *, y))) subproof {
+            val invInG = have(minus(x) ∈ G) by Tautology.from(additiveInverseInRing)
+            val prod2InG = have(op(minus(x),*,y) ∈ G) by Tautology.from(lastStep, ringIsClosedByProduct of (x -> minus(x)))
+            
+            // (x + (-x))y = 0y
+            val eq = have(op(x, +, minus(x)) === identity(G, +)) by Tautology.from(groupG, inverseCancellation of (* -> +))
+            have((op(x, +, minus(x)) === identity(G, +)) |- (op( op(x, +, minus(x)), *, y) === op(identity(G,+), *, y))) by Congruence
+            val eq1 = have(op(op(x, +, minus(x)), *, y) === op(identity(G,+), *, y)) by Tautology.from(lastStep, eq)
+            have(op(identity(G,+), *, y) === identity(G,+)) by Tautology.from(absorbingElementZero of (x -> y))
+            
+            // (x + (-x))y = 0
+            val eq2 = have(op(op(x, +, minus(x)), *, y) === identity(G, +)) by Tautology.from(lastStep, eq1, equalityTransitivity of (x -> op(op(x, +, minus(x)), *, y), y -> op(identity(G,+), *, y), z -> identity(G, +)))
+
+            // (x + (-x))y = xy + (-x)y
+            have(op(op(x, +, minus(x)), *, y) === op(op(x,*,y),+,op(minus(x),*,y))) by Tautology.from(invInG, distributivity of (y -> minus(x), z -> y))
+            
+            // (-x)y + xy = 0 by transitivity
+            val eq3 = have( (op(op(x,*,y),+,op(minus(x),*,y))) === identity(G, +)) by Tautology.from(lastStep, eq2, equalityTransitivity of (x -> (op(op(x,*,y),+,op(minus(x),*,y))), y -> op(op(x, +, minus(x)), *, y), z -> identity(G, +)))
+            have((op(op(x,*,y),+,op(minus(x),*,y))) === op(op(minus(x),*,y),+, op(x,*,y))) by Tautology.from(abelianGroupG, prod1InG, prod2InG, commutativity  of (* -> +, x -> op(minus(x),*,y), y -> op(x,*,y)))
+            have(op(op(minus(x),*,y),+, op(x,*,y)) === identity(G, +)) by Tautology.from(lastStep, eq3, equalityTransitivity of (x -> op(op(minus(x),*,y),+, op(x,*,y)), y -> (op(op(x,*,y),+,op(minus(x),*,y))), z -> identity(G, +)))
+
+            // xy = -((-x)y)
+            val eq4 = have(op(x,*,y) === minus(op(minus(x),*,y))) by Tautology.from(prod1InG, prod2InG, lastStep, groupG, inverseTest of (* -> +, x -> op(minus(x),*,y), y -> op(x,*,y)))
+            have((op(x,*,y) === minus(op(minus(x),*,y))) |- (minus(op(x,*,y)) === minus(minus(op(minus(x),*,y))))) by Congruence
+            val eq5 = have(minus(op(x,*,y)) === minus(minus(op(minus(x),*,y)))) by Tautology.from(lastStep, eq4)
+            have(minus(minus(op(minus(x),*,y))) === op(minus(x),*,y)) by Tautology.from(lastStep, groupG, inverseIsInvolutive of (* -> +, x -> op(minus(x),*,y)), prod2InG)
+
+            // -xy = -(-((-x)y)) = (-x)y
+            have(thesis) by Tautology.from(lastStep, eq5, equalityTransitivity of (x -> minus(op(x,*,y)), y -> minus(minus(op(minus(x),*,y))), z -> op(minus(x),*,y)))
+        }
+        have(thesis) by Tautology.from(firstProof, secondProof)
     }
+
+    /**
+     * Theorem --- In a ring, '-(x + y) = (-x) + (-y)', for all 'x,y' in 'G'.
+     * Where '-x' denotes the additive inverse of 'x'.
+     */
+    val additiveNegationDistribution = Theorem((ring(G,+,*),x ∈ G,y ∈ G) |- minus(op(x,+,y)) === op(minus(x),+,minus(y))){
+        assume(ring(G, +, *))
+        assume(x ∈ G)
+        assume(y ∈ G)
+         
+        val groupG = have(group(G, +)) by Tautology.from(ring.definition)
+        val abelianGroupG = have(abelianGroup(G, +)) by Tautology.from(ring.definition)
+        val invInG = have(minus(y) ∈ G) by Tautology.from(additiveInverseInRing of (x -> y))
+        val XinvInG = have(minus(x) ∈ G) by Tautology.from(additiveInverseInRing)
+        val invSumInG = have(op(minus(y), +, minus(x)) ∈ G) by Tautology.from(groupG, invInG, XinvInG, groupIsClosedByProduct of (* -> +, x -> minus(y), y -> minus(x)))
+        val sumInG = have(op(x,+,y) ∈ G) by Tautology.from(groupG, groupIsClosedByProduct of (* -> +))
+
+        // (x + y) + (-y) = x + (y + (-y)) = x
+        val step1 = have(op(op(x,+,y), +, minus(y)) === op(x, +, op(y,+,minus(y)))) by Tautology.from(groupG, invInG, associativity of (* -> +, z -> minus(y)))
+        val eq1 = have(op(y,+,minus(y)) === identity(G, +)) by Tautology.from(groupG, inverseCancellation of (* -> +, x -> y))
+        have((op(y,+,minus(y)) === identity(G, +)) |- op(x, +, op(y,+,minus(y))) === op(x, +, identity(G, +))) by Congruence
+        have(op(x, +, op(y,+,minus(y))) === op(x, +, identity(G, +))) by Tautology.from(lastStep, eq1)
+        val step2 = have(op(op(x,+,y), +, minus(y)) === op(x, +, identity(G, +))) by Tautology.from(lastStep, step1, equalityTransitivity of (x -> op(op(x,+,y), +, minus(y)), y -> op(x, +, op(y,+,minus(y))), z ->  op(x, +, identity(G, +))))
+        have(op(x, +, identity(G, +)) === x) by Tautology.from(groupG, identityNeutrality of (* -> +))
+        val eq2 = have(op(op(x,+,y), +, minus(y)) === x) by Tautology.from(lastStep, step2, equalityTransitivity of (x -> op(op(x,+,y), +, minus(y)), y -> op(x, +, identity(G, +)), z -> x))
+
+        // x + (y + (-y)) + (-x) = x + (-x) = 0
+        have((op(op(x,+,y), +, minus(y)) === x) |- op(op(op(x,+,y), +, minus(y)),+, minus(x)) === op(x,+,minus(x))) by Congruence
+        val step3 = have(op(op(op(x,+,y), +, minus(y)),+, minus(x)) === op(x,+,minus(x))) by Tautology.from(lastStep, eq2)
+        have(op(x,+,minus(x)) === identity(G, +)) by Tautology.from(groupG, inverseCancellation of (* -> +))
+        val eq3 = have(op(op(op(x,+,y), +, minus(y)),+, minus(x)) === identity(G, +)) by Tautology.from(lastStep, step3, equalityTransitivity of (x -> op(op(op(x,+,y), +, minus(y)),+, minus(x)), y -> op(x,+,minus(x)), z -> identity(G, +)))
+    
+        // ((x+y) + (-y)) + (-x)) = (x+y) + ((-y) + (-x)) by associativity
+        have(op(op(op(x,+,y), +, minus(y)),+, minus(x)) === op(op(x,+,y), +, op(minus(y), +, minus(x)))) by Tautology.from(groupG, invInG, XinvInG, sumInG, associativity of (* -> +, x -> op(x,+,y), y -> minus(y), z -> minus(x)))
+        // so (x+y) + ((-y) + (-x)) = 0
+        have(op(op(x,+,y), +, op(minus(y), +, minus(x))) === identity(G, +)) by Tautology.from(lastStep, eq3, equalityTransitivity of (x -> op(op(x,+,y), +, op(minus(y), +, minus(x))), y -> op(op(op(x,+,y), +, minus(y)),+, minus(x)), z -> identity(G, +)))
+
+        // -(x + y) = (-y) + (-x)
+        val eq4 = have(op(minus(y), +, minus(x)) === minus(op(x,+,y))) by Tautology.from(groupG, lastStep, sumInG, invSumInG, inverseTest of (* -> +, x -> op(x,+,y), y -> op(minus(y), +, minus(x))))
+        // (-y) + (-x) = (-x) + (-y)
+        have(op(minus(y), +, minus(x)) === op(minus(x), +, minus(y))) by Tautology.from(abelianGroupG, invInG, XinvInG, commutativity of (* -> +, x -> minus(y), y -> minus(x)))
+        have(thesis) by Tautology.from(lastStep, eq4, equalityTransitivity of (x -> minus(op(x,+,y)), y -> op(minus(y), +, minus(x)), z -> op(minus(x), +, minus(y))))
+    }   
+
 
     /**
      * Lemma --- Transitivity of implication
@@ -292,7 +389,8 @@ object RingTheory extends lisa.Main {
      * 'x*y = x*z ==> y = z' for all 'y,z' in 'G'.
      * '0' denotes the identity element under the '+' operation.
      */
-    val multiplicativeCancellationLaw = Theorem((integralDomain(G, +, *), x ∈ G, y ∈ G, z ∈ G, x =/= identity(G, +)) |- (op(x,*,y) === op(x,*,z) ==> (y === z))){
+    val multiplicativeCancellationLaw = Theorem((integralDomain(G,+,*), x ∈ G, y ∈ G, z ∈ G, x =/= identity(G, +)) |- (op(x,*,y) === op(x,*,z) ==> (y === z)) /\ (op(y,*,x) === op(z,*,x) ==> (y === z))){
+    
         assume(integralDomain(G, +, *))
         assume(x ∈ G)
         assume(y ∈ G)
@@ -344,7 +442,21 @@ object RingTheory extends lisa.Main {
         have((minus(y) === minus(z)) ==> (y === z)) by Tautology.from(lastStep, step7, equalityTransitivity of (x -> y, y -> minus(minus(z)), z -> z))
         
         // -y = -z ==> y = z, so xy = yz ==> y = z
-        have(thesis) by Tautology.from(lastStep, finalEq, implicationTransitivity of (p1 -> (op(x,*,y) === op(x,*,z)), p2 -> (minus(y) === minus(z)) , p3 -> (y === z)))
+        val firstResult = have(op(x,*,y) === op(x,*,z) ==> (y === z)) by Tautology.from(lastStep, finalEq, implicationTransitivity of (p1 -> (op(x,*,y) === op(x,*,z)), p2 -> (minus(y) === minus(z)) , p3 -> (y === z)))
+        
+        // we will prove that yx = zx ==> y = z by using the previous result and the commutativity property of an integral domain
+        // yx = xz ==> xy = xz
+        have(op(x,*,y) === op(y,*,x)) by Tautology.from(integralDomain.definition, ringCommutativity)
+        val step8 = have((op(y,*,x) === op(x,*,z)) ==> (op(x,*,y) === op(x,*,z))) by Tautology.from(lastStep, equalityTransitivity of (x -> op(x,*,y), y -> op(y,*,x), z -> op(x,*,z)))
+        
+        // we want: yx = zx ==> xy = xz 
+        have(op(x,*,z) === op(z,*,x)) by Tautology.from(integralDomain.definition, ringCommutativity of (y -> z))
+        have((op(y,*,x) === op(z,*,x)) ==> (op(y,*,x) === op(x,*,z))) by Tautology.from(lastStep, equalityTransitivity of (x -> op(y,*,x), y -> op(z,*,x), z -> op(x,*,z)))
+        have((op(y,*,x) === op(z,*,x)) ==> (op(x,*,y) === op(x,*,z))) by Tautology.from(lastStep, step8, implicationTransitivity of (p1 -> (op(y,*,x) === op(z,*,x)), p2 -> (op(y,*,x) === op(x,*,z)), p3 -> (op(x,*,y) === op(x,*,z))))
+        
+        val secondResult = have((op(y,*,x) === op(z,*,x) ==> (y === z))) by Tautology.from(lastStep, firstResult, implicationTransitivity of (p1 -> (op(y,*,x) === op(z,*,x)), p2 -> (op(x,*,y) === op(x,*,z)), p3 -> (y === z)))
+
+        have(thesis) by Tautology.from(firstResult, secondResult)
     }
 
     /**
@@ -387,9 +499,13 @@ object RingTheory extends lisa.Main {
     /**
      * Lemma --- The identity element is neutral by definition.
      */
-    private val identityIsNeutral = Lemma(identityRing(G, +, *) |- isNeutral(multiplicativeIdentity(G, +, *), G, *)) {
+    val identityIsNeutral = Lemma(identityRing(G, +, *) |- isNeutral(multiplicativeIdentity(G, +, *), G, *)) {
         sorry
-        //have(isNeutral(multiplicativeIdentity(G, +, *), G, *)) by Definition(multiplicativeIdentity, multiplicativeIdentityUniqueness)(G, +, *)
+        //have(∀(y, (y === multiplicativeIdentity(G, +, *)) <=> isNeutral(y, G, *))) by Tautology.from(
+        //multiplicativeIdentity.definition,
+        //multiplicativeIdentityUniqueness
+        //)
+        //have(thesis) by Definition(multiplicativeIdentity, multiplicativeIdentityUniqueness)(G, +, *)
     }
 
     /**
@@ -430,7 +546,9 @@ object RingTheory extends lisa.Main {
     /**
      * Theorem --- In a ring '(G, +, *)', we have 'y + x = z + x ==> y = z'.
      */
-    val AdditiveCancellationLaw = Theorem((ring(G, +, *), x ∈ G, y ∈ G, z ∈ G) |- (((op(x, +, y) === op(x, +, z)) ==> (y === z)) /\ ((op(y, +, x) === op(z, +, x)) ==> (y === z)))){
+    val AdditiveCancellationLaw = Theorem((ring(G, +, *), x ∈ G, y ∈ G, z ∈ G) |- 
+        (((op(x, +, y) === op(x, +, z)) ==> (y === z)) /\ ((op(y, +, x) === op(z, +, x)) ==> (y === z)))
+    ){
         have(thesis) by Tautology.from(ring.definition, rightCancellation of (* -> +), leftCancellation of (* -> +))
     }
 
@@ -507,7 +625,7 @@ object RingTheory extends lisa.Main {
      * (by definition of the group of units)
      */
     val multiplicativeInverseIsInverse = Lemma( (unitGroup(U, G, +, *), x ∈ U) |- isInverse(multiplicativeInverse(x), x, U, opU)){
-        assume(unitGroup(U,G,+,*))
+        assume(unitGroup(U, G, +, *))
         assume(x ∈ U)
         have(group(U, opU)) by Tautology.from(unitGroup.definition)
         have(thesis) by Tautology.from(lastStep, inverseIsInverse of (G -> U, * -> opU))
@@ -546,14 +664,18 @@ object RingTheory extends lisa.Main {
         have(thesis) by Tautology.from(lastStep, inverseSymmetry of (G -> U, * -> opU))
     }
     
-    
+    /**
+     * Theorem --- For all 'x', multiplicativeInverse(multiplicativeInverse(x)) = x
+     * 
+     * Direct corollary of [[multiplicativeInverseSymmetry]].
+     */
     val multiplicativeInverseIsInvolutive = Theorem((unitGroup(U, G, +, *), x ∈ U) |- multiplicativeInverse((multiplicativeInverse(x))) === x
     ){
         assume(unitGroup(U, G, +, *))
         assume(x ∈ U)
         have(thesis) by Tautology.from(multiplicativeInverseSymmetry of (y -> multiplicativeInverse(x)), multiplicativeInverseInU)
     }
-
+    
     //
     // 4. Ring Homomorphism
     //
@@ -593,14 +715,14 @@ object RingTheory extends lisa.Main {
      * Lemma --- If `f` is a ring homomorphism, then `f(x) ∈ H` for all `x ∈ G`.
      */
     val imageInCodomain = Lemma((ringHomomorphism(f, G, +, *, H, -+, -*), z ∈ G) |- app(f, z) ∈ H ){ 
-        have(ringHomomorphism(f, G, +, *, H, -+, -*) |- functionFrom(f, G, H)) by Tautology.from(ringHomomorphism.definition)
+        have(ringHomomorphism(f, G, +, *, H, -+, -*) |- functionFrom(f,G,H)) by Tautology.from(ringHomomorphism.definition)
         have(thesis) by Tautology.from(lastStep, functionAppInCodomain of (x -> G, y -> H, t -> z)) 
-     }
+    }
         
     
     /**
      * Theorem --- If `f` is a ring homomorphism between `G` and `H`, then `f(0_G) = 0_H`.
-     * Where 0_G and 0_H are the additive identity elements
+     * Where 0_G and 0_H are the additive identity elements in' G' and 'H' respectively
      */
     val ringHomomorphismMapsZeroToZero = Theorem((ringHomomorphism(f, G, +, *, H, -+, -*)) |- (app(f, identity(G,+)) === identity(H, -+))){
         assume(ringHomomorphism(f, G, +, *, H, -+, -*))
