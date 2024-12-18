@@ -175,11 +175,19 @@ object RingTheory extends lisa.Main {
         have(thesis) by Tautology.from(identityIsNeutral, isNeutral.definition of (e -> multiplicativeIdentity(G, +, *)))
     }
     */
-    
+    /**
+     * Theorem --- In a ring '(G, +, *)', we have 'y + x = z + x ==> y = z'.
+     */
+    val CancellationLaw = Theorem((ring(G, +, *), x ∈ G, y ∈ G, z ∈ G) |- (op(y, +, x) === op(z, +, x)) ==> (y === z)){
+        assume(ring(G, +, *))
+        have(thesis) by Tautology.from(ring.definition, rightCancellation of (G -> G, * -> +))
+    }
+
     // Minus axioms
     val addingAdditiveInverse = Theorem((ring(G, +, *), x ∈ G, y ∈ G, (op(x, +, y) === identity(G, +)))|- y === minus(x)) {
         assume(ring(G, +, *), x ∈ G, y ∈ G)
         assume(op(x, +, y) === identity(G, +))
+        val p = have(inverse(x, G, +) ∈ G) by Tautology.from(additiveInverseInRing)
         val ab = have(abelianGroup(G, +)) by Tautology.from(ring.definition)
         val b = have((abelianGroup(G, +), x ∈ G, y ∈ G) |- op(x, +, y) === op(y, +, x)) by Tautology.from(ab,commutativity of (* -> +))
         val c = have(identity(G, +) === op(x, +, y)) by Restate
@@ -187,21 +195,13 @@ object RingTheory extends lisa.Main {
         have(identity(G, +) === op(y, +, x)) by Tautology.from(d, equalityTransitivity of (x -> identity(G, +), y -> op(x, +, y), z -> op(y, +, x)))
         thenHave((op(y, +, x) === identity(G, +))) by Restate
         val i = have((op(x, +, y) === identity(G, +)) /\ (op(y, +, x) === identity(G, +))) by Tautology.from(lastStep, c)
-        //have(isNeutral(op(x, *, y), G, *) /\ isNeutral(op(y, *, x), G, *)) by Tautology.from(i, identityExistence.definition, isNeutral.definition of (e -> identity(G, +), G -> G, * -> +))
-        // val j1 = have(inverse(x, G, +) ∈ G) by Tautology.from(ab, abelianGroup.definition of (G -> G, * -> +), inverseInGroup of (* -> +))
-        // val j2 = have(identity(G, +) ∈ G) by Tautology.from(ab, abelianGroup.definition of (G -> G, * -> +), identityInGroup of (* -> +))
         val h = have((op(x, +, inverse(x, G, +)) === identity(G, +)) /\ (op(inverse(x, G, +), +, x) === identity(G, +))) by Tautology.from(ab, abelianGroup.definition of (G -> G, * -> +), inverseCancellation of (* -> +))
-        //val h = have(∃(e, isNeutral(e, G, +))) by Tautology.from(ab, abelianGroup.definition of (G -> G, * -> +), identityExistence.definition of (G -> G, * -> +))
+        thenHave((op(x, +, inverse(x, G, +)) === identity(G, +)) /\ (identity(G, +) === op(inverse(x, G, +), +, x))) by Restate
+        val u = have((op(y, +, x) === identity(G, +)) /\ (identity(G, +) === op(inverse(x, G, +), +, x))) by Tautology.from(lastStep, i)
+        val k = have((op(y, +, x)) === (op(inverse(x, G, +), +, x))) by Tautology.from(lastStep, equalityTransitivity of (x -> op(y, +, x), y -> identity(G, +), z -> op(inverse(x, G, +), +, x)))
+        have(thesis) by Tautology.from(k, p, CancellationLaw of (x -> x, y -> y, z -> inverse(x, G, +)))
 
 
-    }
-
-    /**
-     * Theorem --- In a ring '(G, +, *)', we have 'y + x = z + x ==> y = z'.
-     */
-    val CancellationLaw = Theorem((ring(G, +, *), x ∈ G, y ∈ G, z ∈ G) |- (op(y, +, x) === op(z, +, x)) ==> (y === z)){
-        assume(ring(G, +, *))
-        have(thesis) by Tautology.from(ring.definition, rightCancellation of (G -> G, * -> +))
     }
 
     //
