@@ -396,7 +396,7 @@ object RingTheory extends lisa.Main {
     }   
 
     /**
-     * Theorem --- In a ring '(G, +, *)', we have 'y + x = z + x ==> y = z'.
+     * Theorem --- In a ring '(G, +, *)', we have 'y + x = z + x ==> y = z', and x + y = x + z ==> y = z.
      */
     val AdditiveCancellationLaw = Theorem((ring(G, +, *), x ∈ G, y ∈ G, z ∈ G) |- (((op(x, +, y) === op(x, +, z)) ==> (y === z)) /\ ((op(y, +, x) === op(z, +, x)) ==> (y === z)))
     ){
