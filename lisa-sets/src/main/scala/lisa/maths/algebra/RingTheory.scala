@@ -309,11 +309,11 @@ object RingTheory extends lisa.Main {
             
             // 4. xy = -(x(-y))
             val eq4 = have(op(x,*,y) === minus(op(x,*,minus(y)))) by Tautology.from(prod1InG, prod2InG, lastStep, groupG, inverseTest of (* -> +, x -> op(x,*,minus(y)), y -> op(x,*,y)))
-            
+
             // 5. -(xy) = -(-(x(-y))), so -(xy) = x(-y) by involution
             have((op(x,*,y) === minus(op(x,*,minus(y)))) |- (minus(op(x,*,y)) === minus(minus(op(x,*,minus(y)))))) by Congruence
             val eq5 = have(minus(op(x,*,y)) === minus(minus(op(x,*,minus(y))))) by Tautology.from(lastStep, eq4)
-            have(minus(minus(op(x,*,minus(y)))) === op(x,*,minus(y))) by Tautology.from(lastStep, groupG, inverseIsInvolutive of (* -> +, x -> op(x,*,minus(y))), prod2InG)
+            have(minus(minus(op(x,*,minus(y)))) === op(x,*,minus(y))) by Tautology.from(lastStep, additiveInverseIsInvolutive of (x -> op(x,*,minus(y))), prod2InG)
             have(thesis) by Tautology.from(lastStep, eq5, equalityTransitivity of (x -> minus(op(x,*,y)), y -> minus(minus(op(x,*,minus(y)))), z -> op(x,*,minus(y))))
         }
 
@@ -343,7 +343,7 @@ object RingTheory extends lisa.Main {
             // 5. -(xy) = -(-((-x)y)), so (-xy) = (-x)y by involution
             have((op(x,*,y) === minus(op(minus(x),*,y))) |- (minus(op(x,*,y)) === minus(minus(op(minus(x),*,y))))) by Congruence
             val eq5 = have(minus(op(x,*,y)) === minus(minus(op(minus(x),*,y)))) by Tautology.from(lastStep, eq4)
-            have(minus(minus(op(minus(x),*,y))) === op(minus(x),*,y)) by Tautology.from(lastStep, groupG, inverseIsInvolutive of (* -> +, x -> op(minus(x),*,y)), prod2InG)
+            have(minus(minus(op(minus(x),*,y))) === op(minus(x),*,y)) by Tautology.from(lastStep, additiveInverseIsInvolutive of (x -> op(minus(x),*,y)), prod2InG)
             have(thesis) by Tautology.from(lastStep, eq5, equalityTransitivity of (x -> minus(op(x,*,y)), y -> minus(minus(op(minus(x),*,y))), z -> op(minus(x),*,y)))
         }
 
@@ -413,7 +413,7 @@ object RingTheory extends lisa.Main {
 
     /**
      * Theorem --- In an integral domain '(G, +, *)', if 'x'  is in 'G' and 'x' is different from '0', then
-     * 'xy = xz ==> y = z' for all 'y,z' in 'G'.
+     * 'xy = xz ==> y = z, and yx = zx ==> y = z' for all 'y,z' in 'G'.
      * '0' denotes the identity element under the '+' operation.
      */
     val multiplicativeCancellationLaw = Theorem((integralDomain(G,+,*), x ∈ G, y ∈ G, z ∈ G, x =/= identity(G, +)) |- (op(x,*,y) === op(x,*,z) ==> (y === z)) /\ (op(y,*,x) === op(z,*,x) ==> (y === z))
