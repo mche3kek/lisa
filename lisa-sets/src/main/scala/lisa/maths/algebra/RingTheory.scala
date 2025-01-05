@@ -353,10 +353,36 @@ object RingTheory extends lisa.Main {
     }
 
     /**
+     * Theorem --- In a ring, we have '(-x)(-y) = xy. 
+     * Where '-x' and '-y' denote the additive inverse of 'x' and 'y' respectively.
+     */
+    val negationCancellation = Theorem((ring(G, +, *), x ∈ G,y ∈ G) |- op(minus(x),*,minus(y)) === op(x,*,y)) {
+        assume(ring(G, +, *))
+        assume(x ∈ G)
+        assume(y ∈ G)
+        val invXinG = have(minus(x) ∈ G) by Tautology.from(ring.definition, abelianGroup.definition of (* -> +), inverseInGroup of (* -> +))
+        
+        // 1. (-x)(-y) = -((-x)y)
+        val eq1 = have(minus(op(minus(x),*,y)) === op(minus(x),*,minus(y))) by Tautology.from(lastStep, negationDistribution of (x -> minus(x)))
+        
+        // 2. -((-x)y) = (-(-x))y
+        val eq2 = have(minus(op(minus(x),*,y)) === op(minus(minus(x)),*,y)) by Tautology.from(invXinG, negationDistribution of (x -> minus(x)))
+        
+        // 3. -(-x) = x so we can conclude (-(-x))y = xy
+        val step1 = have(minus(minus(x)) === x) by Tautology.from(additiveInverseIsInvolutive)
+        have(minus(minus(x)) === x |- op(minus(minus(x)),*,y) === op(x,*,y)) by Congruence
+        val eq3 = have(op(minus(minus(x)),*,y) === op(x,*,y)) by Tautology.from(lastStep, step1)
+
+        // 4. (-x)(-y) = xy by transitivity of the previous results
+        have(minus(op(minus(x),*,y)) === op(x,*,y)) by Tautology.from(lastStep, eq2, equalityTransitivity of (x -> minus(op(minus(x),*,y)), y -> op(minus(minus(x)),*,y), z -> op(x,*,y)))
+        have(thesis) by Tautology.from(lastStep, eq1, equalityTransitivity of (x -> op(minus(x),*,minus(y)), y -> minus(op(minus(x),*,y)), z -> op(x,*,y)))
+    }
+
+    /**
      * Theorem --- In a ring, '-(x + y) = (-x) + (-y)', for all 'x,y' in 'G'.
      * Where '-x' denotes the additive inverse of 'x'.
      */
-    val additiveNegationDistribution = Theorem((ring(G,+,*),x ∈ G,y ∈ G) |- minus(op(x,+,y)) === op(minus(x),+,minus(y))
+    val additiveNegationDistribution = Theorem((ring(G, +, *), x ∈ G, y ∈ G) |- minus(op(x,+,y)) === op(minus(x),+,minus(y))
     ){
         assume(ring(G, +, *))
         assume(x ∈ G)
