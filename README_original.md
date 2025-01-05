@@ -1,12 +1,5 @@
 # LISA = LISA Is Sets Automated
 
-## Formal Verification Project 
-
-To test our implementation of ring theory, you can run the `sbt runMain lisa.maths.algebra.RingTheory`.
-Many theorems rely on `sorry` because of our use of group theory lemmas and theorems which were written in a deprecated LISA version (and thus replaced with `sorry`).
-
-## What is LISA ?
-
 LISA is a proof assistant based on first-order logic sequent calculus and set
 theory. To get started, check the [Reference Manual](refman/lisa.pdf).
 
