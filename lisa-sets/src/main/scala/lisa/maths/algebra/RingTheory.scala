@@ -479,24 +479,34 @@ object RingTheory extends lisa.Main {
     }
 
 
-    // Minus axioms
+    /**
+     * Theorem --- In a ring '(G, +, *)', we have 'x + y = 0 ==> y = -x'.
+     * Where -x denotes the additive inverse of x.
+     */
     val addingAdditiveInverse = Theorem((ring(G, +, *), x ∈ G, y ∈ G, (op(x, +, y) === identity(G, +)))|- y === minus(x)) {
         assume(ring(G, +, *), x ∈ G, y ∈ G)
         assume(op(x, +, y) === identity(G, +))
-        val p = have(inverse(x, G, +) ∈ G) by Tautology.from(additiveInverseInRing)
-        val ab = have(abelianGroup(G, +)) by Tautology.from(ring.definition)
-        val b = have((abelianGroup(G, +), x ∈ G, y ∈ G) |- op(x, +, y) === op(y, +, x)) by Tautology.from(ab,commutativity of (* -> +))
-        val c = have(identity(G, +) === op(x, +, y)) by Restate
-        val d = have((identity(G, +) === op(x, +, y)) /\ (op(x, +, y) === op(y, +, x))) by Tautology.from(c, ab, b)
-        have(identity(G, +) === op(y, +, x)) by Tautology.from(d, equalityTransitivity of (x -> identity(G, +), y -> op(x, +, y), z -> op(y, +, x)))
-        thenHave((op(y, +, x) === identity(G, +))) by Restate
-        val i = have((op(x, +, y) === identity(G, +)) /\ (op(y, +, x) === identity(G, +))) by Tautology.from(lastStep, c)
-        val h = have((op(x, +, inverse(x, G, +)) === identity(G, +)) /\ (op(inverse(x, G, +), +, x) === identity(G, +))) by Tautology.from(ab, abelianGroup.definition of (G -> G, * -> +), inverseCancellation of (* -> +))
-        thenHave((op(x, +, inverse(x, G, +)) === identity(G, +)) /\ (identity(G, +) === op(inverse(x, G, +), +, x))) by Restate
-        val u = have((op(y, +, x) === identity(G, +)) /\ (identity(G, +) === op(inverse(x, G, +), +, x))) by Tautology.from(lastStep, i)
-        val k = have((op(y, +, x)) === (op(inverse(x, G, +), +, x))) by Tautology.from(lastStep, equalityTransitivity of (x -> op(y, +, x), y -> identity(G, +), z -> op(inverse(x, G, +), +, x)))
-        have(thesis) by Tautology.from(k, p, AdditiveCancellationLaw of (x -> x, y -> y, z -> inverse(x, G, +)))
 
+        val invInRing = have(inverse(x, G, +) ∈ G) by Tautology.from(additiveInverseInRing)
+        
+        // 1. x + y = 0 ==> y + x = 0
+        val ab = have(abelianGroup(G, +)) by Tautology.from(ring.definition)
+        val step1 = have((abelianGroup(G, +), x ∈ G, y ∈ G) |- op(x, +, y) === op(y, +, x)) by Tautology.from(ab,commutativity of (* -> +))
+        have((identity(G, +) === op(x, +, y)) /\ (op(x, +, y) === op(y, +, x))) by Tautology.from(ab, step1)
+        have(identity(G, +) === op(y, +, x)) by Tautology.from(lastStep, equalityTransitivity of (x -> identity(G, +), y -> op(x, +, y), z -> op(y, +, x)))
+        thenHave((op(y, +, x) === identity(G, +))) by Restate
+        
+        // 2. -x + x = 0
+        val step2 = have((op(x, +, y) === identity(G, +)) /\ (op(y, +, x) === identity(G, +))) by Tautology.from(lastStep)
+        have((op(x, +, inverse(x, G, +)) === identity(G, +)) /\ (op(inverse(x, G, +), +, x) === identity(G, +))) by Tautology.from(ab, abelianGroup.definition of (G -> G, * -> +), inverseCancellation of (* -> +))
+        thenHave((op(x, +, inverse(x, G, +)) === identity(G, +)) /\ (identity(G, +) === op(inverse(x, G, +), +, x))) by Restate
+        
+        // 3. y + x = -x + x by transitivity
+        have((op(y, +, x) === identity(G, +)) /\ (identity(G, +) === op(inverse(x, G, +), +, x))) by Tautology.from(lastStep, step2)
+        have((op(y, +, x)) === (op(inverse(x, G, +), +, x))) by Tautology.from(lastStep, equalityTransitivity of (x -> op(y, +, x), y -> identity(G, +), z -> op(inverse(x, G, +), +, x)))
+        
+        // 4. we conclude by the cancellation
+        have(thesis) by Tautology.from(lastStep, invInRing, AdditiveCancellationLaw of (x -> x, y -> y, z -> inverse(x, G, +)))
     }
 
     /**
