@@ -356,7 +356,8 @@ object RingTheory extends lisa.Main {
      * Theorem --- In a ring, we have '(-x)(-y) = xy. 
      * Where '-x' and '-y' denote the additive inverse of 'x' and 'y' respectively.
      */
-    val negationCancellation = Theorem((ring(G, +, *), x ∈ G,y ∈ G) |- op(minus(x),*,minus(y)) === op(x,*,y)) {
+    val negationCancellation = Theorem((ring(G, +, *), x ∈ G,y ∈ G) |- op(minus(x),*,minus(y)) === op(x,*,y)
+    ){
         assume(ring(G, +, *))
         assume(x ∈ G)
         assume(y ∈ G)
@@ -376,6 +377,52 @@ object RingTheory extends lisa.Main {
         // 4. (-x)(-y) = xy by transitivity of the previous results
         have(minus(op(minus(x),*,y)) === op(x,*,y)) by Tautology.from(lastStep, eq2, equalityTransitivity of (x -> minus(op(minus(x),*,y)), y -> op(minus(minus(x)),*,y), z -> op(x,*,y)))
         have(thesis) by Tautology.from(lastStep, eq1, equalityTransitivity of (x -> op(minus(x),*,minus(y)), y -> minus(op(minus(x),*,y)), z -> op(x,*,y)))
+    }
+
+    /**
+     * Theorem --- In a ring, we have 'x(y - z) = xy - xz' and '(x - y)z = xz - yz'.
+     * Where the notation's meaning is that 'x - y' denotes the operation 'x + (-y)', and '-y' denotes the additive inverse of y.
+     */
+    val distributivityWithNegation = Theorem( (ring(G, +, *), x ∈ G, y ∈ G, z ∈ G) |- ((op(x,*,op(y,+, minus(z))) === op(op(x,*,y),+,minus(op(x,*,z)))) /\ (op(op(x,+, minus(y)),*,z) === op(op(x,*,z),+, minus(op(y,*,z)))))
+    ){
+        assume(ring(G, +, *))
+        assume(x ∈ G)
+        assume(y ∈ G)
+        assume(z ∈ G)
+
+        // first equality : x(y - z) = xy - xz
+        val firstProof = have((ring(G, +, *), x ∈ G, y ∈ G, z ∈ G) |- op(x,*,op(y,+, minus(z))) === op(op(x,*,y),+,minus(op(x,*,z)))) subproof {
+            val invZinG = have(minus(z) ∈ G) by Tautology.from(ring.definition, abelianGroup.definition of (* -> +), additiveInverseInRing of (x -> z))
+            
+            // 1. x(y + (-z)) = xy + x(-z) by distributivity 
+            val eq1 = have(op(x,*,op(y,+, minus(z))) === op(op(x,*,y), +, op(x,*, minus(z)))) by Tautology.from(invZinG, distributivity of (z -> minus(z)))
+            
+            // 2. x(-z) = -(xz), so xy + x(-z) = xy + -(xz) 
+            val step1 = have(op(x,*, minus(z)) === minus(op(x,*,z))) by Tautology.from(negationDistribution of (y -> z))
+            have((op(x,*, minus(z)) === minus(op(x,*,z))) |- op(op(x,*,y), +, op(x,*, minus(z))) === op(op(x,*,y), +, minus(op(x,*,z)))) by Congruence
+            val eq2 = have(op(op(x,*,y), +, op(x,*, minus(z))) === op(op(x,*,y), +, minus(op(x,*,z)))) by Tautology.from(lastStep, step1)
+            
+            // 3. we conclude by transitivity
+            have(thesis) by Tautology.from(lastStep, eq1, equalityTransitivity of (x -> op(x,*,op(y,+, minus(z))), y -> op(op(x,*,y), +, op(x,*, minus(z))), z -> op(op(x,*,y),+,minus(op(x,*,z)))))
+        }
+       
+        // second equality: (x - y)z = xz - yz
+        val secondProof = have((ring(G, +, *), x ∈ G, y ∈ G, z ∈ G) |- op(op(x,+, minus(y)),*,z) === op(op(x,*,z),+, minus(op(y,*,z)))) subproof {
+            val invYinG = have(minus(y) ∈ G) by Tautology.from(ring.definition, abelianGroup.definition of (* -> +), additiveInverseInRing of (x -> y))
+            
+            // 1. (x + (-y))z = xz + (-y)z by distributivity
+            val eq1 = have(op(op(x,+, minus(y)),*,z) === op(op(x,*,z),+, op(minus(y),*,z))) by Tautology.from(invYinG, distributivity of (y -> minus(y)))
+
+            // 2. (-y)z = -(yz)
+            val step1 = have(op(minus(y),*,z) === minus(op(y,*,z))) by Tautology.from(negationDistribution of (x -> y, y -> z))
+            have(op(minus(y),*,z) === minus(op(y,*,z)) |- op(op(x,*,z),+, op(minus(y),*,z)) === op(op(x,*,z),+, minus(op(y,*,z)))) by Congruence
+            val eq2 = have(op(op(x,*,z),+, op(minus(y),*,z)) === op(op(x,*,z),+, minus(op(y,*,z)))) by Tautology.from(lastStep, step1)
+
+            // 3. we conclude by transitivity
+            have(thesis) by Tautology.from(lastStep, eq1, equalityTransitivity of (x -> op(op(x,+, minus(y)),*,z), y -> op(op(x,*,z),+, op(minus(y),*,z)), z -> op(op(x,*,z),+, minus(op(y,*,z)))))
+        }
+
+        have(thesis) by Tautology.from(firstProof, secondProof)
     }
 
     /**
