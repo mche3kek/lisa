@@ -63,8 +63,9 @@ object RingTheory extends lisa.Main {
      * Ring --- A ring (G, +, *) is a set along with a law of composition `*` and '+', satisfying [[abelianGroup]], [[closure]],
      * [[associativityAxiom]], [[identityExistence]] and [[distributivityAxiom]].
      */
-    val ring = DEF(G, +, *) --> group(G, +) /\ abelianGroup(G, +) /\ binaryOperation(G, *) /\ closure(G, *) /\ associativityAxiom(G, *) /\ distributivityAxiom(G, +, *)
-    
+    val ring = DEF(G, +, *) --> abelianGroup(G, +) /\ binaryOperation(G, *) /\ closure(G, *) /\ associativityAxiom(G, *) /\ distributivityAxiom(G, +, *)
+    //group(G, +) /\ 
+
     /**
      * Ring with identity --- A ring with identity (G, +, *) is a ring containing an identity element under '*', satisfying [[identityExistence]].
      */
@@ -163,6 +164,7 @@ object RingTheory extends lisa.Main {
         // 1. '+' is functional
         val eq1 = have(ring(G, +, *) |- functional(+)) by Tautology.from(
             ring.definition, 
+            abelianGroup.definition of (* -> +),
             groupOperationIsFunctional of (* -> +)
         )
         // 2. '*' is functional
@@ -182,7 +184,7 @@ object RingTheory extends lisa.Main {
     val ringOperationDomain = Lemma(ring(G, +, *) |- ( (relationDomain(+) === cartesianProduct(G, G)) /\ (relationDomain(*) === cartesianProduct(G, G)))
     ) {
         assume(ring(G, +, *))
-        val eq1 = have(ring(G, +, *) |- relationDomain(+) === cartesianProduct(G, G)) by Tautology.from(ring.definition,groupOperationDomain of (* -> +))
+        val eq1 = have(ring(G, +, *) |- relationDomain(+) === cartesianProduct(G, G)) by Tautology.from(ring.definition, abelianGroup.definition of (* -> +), groupOperationDomain of (* -> +))
         val eq2 = have(ring(G, +, *) |- relationDomain(*) === cartesianProduct(G, G)) by Tautology.from(ring.definition, binaryOperation.definition, functionFromImpliesDomainEq of (f -> *, x -> cartesianProduct(G, G), y -> G))
         have(thesis) by Tautology.from(eq1, eq2)
     }
@@ -198,7 +200,7 @@ object RingTheory extends lisa.Main {
         assume(x ∈ G)
         
         val e = identity(G, +)
-        val groupG = have(group(G, +)) by Tautology.from(ring.definition)
+        val groupG = have(group(G, +)) by Tautology.from(ring.definition, abelianGroup.definition of (* -> +))
         val eInGroup = have(e ∈ G) by Tautology.from(lastStep, identityInGroup of (* -> +))
         val x0inG = have(op(x,*,e) ∈ G) by Tautology.from(eInGroup, ringIsClosedByProduct of (y -> e))
         val zeroXinG = have(op(e,*,x) ∈ G) by Tautology.from(eInGroup, ringIsClosedByProduct of (x -> e, y -> x)) 
@@ -241,7 +243,7 @@ object RingTheory extends lisa.Main {
      */
     val additiveInverseIsInvolutive = Theorem((ring(G, +, *), x ∈ G) |- minus(minus(x)) === x
     ){
-        have(thesis) by Tautology.from(ring.definition, inverseIsInvolutive of (* -> +))
+        have(thesis) by Tautology.from(ring.definition, abelianGroup.definition of (* -> +), inverseIsInvolutive of (* -> +))
     }
 
     
@@ -251,7 +253,7 @@ object RingTheory extends lisa.Main {
      */
     val additiveIdentityUniqueness = Theorem(ring(G, +, *) |- ∃!(e, isNeutral(e, G, +))
     ) {
-        have(thesis) by Tautology.from(ring.definition, identityUniqueness of (G -> G, * -> +))
+        have(thesis) by Tautology.from(ring.definition, abelianGroup.definition of (* -> +), identityUniqueness of (G -> G, * -> +))
     }
 
     /**
@@ -260,7 +262,7 @@ object RingTheory extends lisa.Main {
     val additiveInverseUniqueness = Theorem((ring(G, +, *), x ∈ G) |- ∃!(y, isInverse(y, x, G, +)) 
     ){
         assume(ring(G, +, *))
-        have(thesis) by Tautology.from(ring.definition, inverseUniqueness of (G -> G, * -> +))
+        have(thesis) by Tautology.from(ring.definition, abelianGroup.definition of (* -> +), inverseUniqueness of (G -> G, * -> +))
     }
 
     /**
@@ -268,7 +270,7 @@ object RingTheory extends lisa.Main {
      */
     val additiveInverseInRing = Lemma((ring(G, +, *), x ∈ G) |- inverse(x, G, +) ∈ G
     ){
-        have(thesis) by Tautology.from(inverseInGroup of (G -> G, * -> +), ring.definition)
+        have(thesis) by Tautology.from(inverseInGroup of (G -> G, * -> +), ring.definition, abelianGroup.definition of (* -> +))
     }
  
     /**
@@ -284,7 +286,7 @@ object RingTheory extends lisa.Main {
         assume(y ∈ G)
         
         val prod1InG = have(op(x,*,y) ∈ G) by Tautology.from(ringIsClosedByProduct)
-        val groupG = have(group(G, +)) by Tautology.from(ring.definition)
+        val groupG = have(group(G, +)) by Tautology.from(ring.definition, abelianGroup.definition of (* -> +))
         val abelianGroupG = have(abelianGroup(G, +)) by Tautology.from(ring.definition)
         
         // First equality : -(xy) = x(-y)
@@ -360,7 +362,7 @@ object RingTheory extends lisa.Main {
         assume(x ∈ G)
         assume(y ∈ G)
          
-        val groupG = have(group(G, +)) by Tautology.from(ring.definition)
+        val groupG = have(group(G, +)) by Tautology.from(ring.definition, abelianGroup.definition of (* -> +))
         val abelianGroupG = have(abelianGroup(G, +)) by Tautology.from(ring.definition)
         val invInG = have(minus(y) ∈ G) by Tautology.from(additiveInverseInRing of (x -> y))
         val XinvInG = have(minus(x) ∈ G) by Tautology.from(additiveInverseInRing)
@@ -400,7 +402,7 @@ object RingTheory extends lisa.Main {
      */
     val AdditiveCancellationLaw = Theorem((ring(G, +, *), x ∈ G, y ∈ G, z ∈ G) |- (((op(x, +, y) === op(x, +, z)) ==> (y === z)) /\ ((op(y, +, x) === op(z, +, x)) ==> (y === z)))
     ){
-        have(thesis) by Tautology.from(ring.definition, rightCancellation of (* -> +), leftCancellation of (* -> +))
+        have(thesis) by Tautology.from(ring.definition, abelianGroup.definition of (* -> +), rightCancellation of (* -> +), leftCancellation of (* -> +))
     }
 
     /**
@@ -426,7 +428,7 @@ object RingTheory extends lisa.Main {
 
         val inv = minus(op(x,*,z))
         val inRing = have(ring(G, +, *)) by Tautology.from(integralDomain.definition)
-        val groupG = have(group(G, +)) by Tautology.from(lastStep, ring.definition)
+        val groupG = have(group(G, +)) by Tautology.from(lastStep, ring.definition, abelianGroup.definition of (* -> +))
         val abelianGroupG = have(abelianGroup(G, +)) by Tautology.from(inRing, ring.definition)
         val invZinG = have(minus(z)∈ G) by Tautology.from(inRing, additiveInverseInRing of (x -> z))
         val prodInG = have(op(x,*,z) ∈ G) by Tautology.from(inRing, ringIsClosedByProduct of (y -> z))
@@ -707,8 +709,8 @@ object RingTheory extends lisa.Main {
     ){
         assume(ringHomomorphism(f, G, +, *, H, -+, -*))
         val e = identity(G, +)
-        val groupG = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- group(G, +)) by Tautology.from(ringHomomorphism.definition, ring.definition)
-        val groupH = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- group(H, -+)) by Tautology.from(ringHomomorphism.definition, ring.definition of (G -> H, this.+ -> -+, * -> -*))
+        val groupG = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- group(G, +)) by Tautology.from(ringHomomorphism.definition, ring.definition, abelianGroup.definition of (* -> +))
+        val groupH = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- group(H, -+)) by Tautology.from(ringHomomorphism.definition, ring.definition of (G -> H, this.+ -> -+, * -> -*), abelianGroup.definition of (G -> H, * -> -+))
         val identityInG = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- e ∈ G) by Tautology.from(groupG, identityInGroup of (* -> +))
         val appInH = have(ringHomomorphism(f, G, +, *, H, -+, -*) |- app(f, e) ∈ H) by Tautology.from(identityInG, imageInCodomain of (z -> e))
 
@@ -731,5 +733,6 @@ object RingTheory extends lisa.Main {
         have((ringHomomorphism(f, G, +, *, H, -+, -*), app(f, e) ∈ H) |- (op(app(f, e), -+, app(f, e)) === app(f, e)) <=> (app(f, e) === identity(H, -+))) by Tautology.from(groupH, identityIdempotence of (x -> app(f, e), G -> H, * -> -+))
         have(ringHomomorphism(f, G, +, *, H, -+, -*) |- (op(app(f, e), -+, app(f, e)) === app(f, e)) <=> (app(f, e) === identity(H, -+))) by Tautology.from(appInH,lastStep)
         have(thesis) by Tautology.from(lastStep, eq4)
-    }   
+    }
+       
 }
